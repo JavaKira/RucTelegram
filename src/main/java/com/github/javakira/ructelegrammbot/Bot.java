@@ -1,7 +1,7 @@
 package com.github.javakira.ructelegrammbot;
 
 import com.github.javakira.ructelegrammbot.config.BotConfig;
-import com.github.javakira.ructelegrammbot.repository.SettingsRepository;
+import com.github.javakira.ructelegrammbot.service.SettingsService;
 import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +17,7 @@ public class Bot extends TelegramLongPollingBot {
     final BotConfig config;
 
     @Autowired
-    private SettingsRepository userRepository;
+    private SettingsService service;
 
     public Bot(BotConfig config) { this.config = config; }
     @Override
@@ -43,11 +43,15 @@ public class Bot extends TelegramLongPollingBot {
     private void startBot(long chatId, String userName) {
         SendMessage message = new SendMessage();
         message.setChatId(chatId);
-        message.setText("Привет, " + userName + "! Я бот с расписанием РУКа. Используй /help для помощи.");
+
+        if (!service.isSettingsExist4Chat(chatId)) {
+            service.createSettings(chatId);
+            message.setText("Привет, " + userName + "! Я бот с расписанием РУКа. Используй /help для помощи.");
+        } else
+            message.setText("Используй /help для помощи.");
 
         try {
             execute(message);
-            log.info("Reply sent");
         } catch (TelegramApiException e){
             log.error(e.getMessage());
         }
