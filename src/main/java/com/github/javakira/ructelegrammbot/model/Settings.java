@@ -19,7 +19,7 @@ public class Settings {
 
     private String branch;
 
-    private String employee;
+    private String employeeKey;
 
     private String kit;
     private String groupKey;

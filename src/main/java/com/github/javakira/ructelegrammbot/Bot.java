@@ -1,6 +1,7 @@
 package com.github.javakira.ructelegrammbot;
 
 import com.github.javakira.ructelegrammbot.config.BotConfig;
+import com.github.javakira.ructelegrammbot.model.Settings;
 import com.github.javakira.ructelegrammbot.service.SettingsService;
 import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
@@ -19,23 +20,46 @@ public class Bot extends TelegramLongPollingBot {
     @Autowired
     private SettingsService service;
 
-    public Bot(BotConfig config) { this.config = config; }
+    public Bot(BotConfig config) {
+        this.config = config;
+    }
+
     @Override
-    public String getBotUsername() { return config.getBotName(); }
+    public String getBotUsername() {
+        return config.getBotName();
+    }
+
     @Override
-    public String getBotToken() { return config.getToken(); }
+    public String getBotToken() {
+        return config.getToken();
+    }
+
     @Override
     public void onUpdateReceived(@NotNull Update update) {
-        if(update.hasMessage() && update.getMessage().hasText()){
+        if (update.hasMessage() && update.getMessage().hasText()) {
             String messageText = update.getMessage().getText();
+            String[] split = messageText.split(" ");
             long chatId = update.getMessage().getChatId();
             String memberName = update.getMessage().getFrom().getFirstName();
 
-            switch (messageText){
+            switch (split[0]) {
                 case "/start":
                     startBot(chatId, memberName);
                     break;
-                default: log.info("Unexpected message");
+                case "/branch":
+                    setBranch(chatId, messageText.split(" ")[1]);
+                    break;
+                case "/employee":
+                    setEmployee(chatId, messageText.split(" ")[1]);
+                    break;
+                case "/kit":
+                    setKit(chatId, messageText.split(" ")[1]);
+                    break;
+                case "/group":
+                    setGroup(chatId, messageText.split(" ")[1]);
+                    break;
+                default:
+                    log.info("Unexpected message");
             }
         }
     }
@@ -52,8 +76,32 @@ public class Bot extends TelegramLongPollingBot {
 
         try {
             execute(message);
-        } catch (TelegramApiException e){
+        } catch (TelegramApiException e) {
             log.error(e.getMessage());
         }
+    }
+
+    private void setBranch(long chatId, String argument) {
+        Settings settings = service.getSettings(chatId);
+        settings.setBranch(argument);
+        service.saveSettings(settings);
+    }
+
+    private void setEmployee(long chatId, String argument) {
+        Settings settings = service.getSettings(chatId);
+        settings.setEmployeeKey(argument);
+        service.saveSettings(settings);
+    }
+
+    private void setKit(long chatId, String argument) {
+        Settings settings = service.getSettings(chatId);
+        settings.setKit(argument);
+        service.saveSettings(settings);
+    }
+
+    private void setGroup(long chatId, String argument) {
+        Settings settings = service.getSettings(chatId);
+        settings.setGroupKey(argument);
+        service.saveSettings(settings);
     }
 }
