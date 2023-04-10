@@ -15,6 +15,8 @@ public class Settings {
     private long id;
     private long chatId;
 
+    private boolean isEmployee;
+
     private String branch;
 
     private String employee;
