@@ -23,7 +23,8 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.telegram:telegrambots:6.5.0")
     implementation("org.postgresql:postgresql:42.6.0")
-    implementation("org.hibernate.orm:hibernate-core:6.2.0.Final")
+    implementation("org.hibernate:hibernate-core:6.2.0.Final")
+    implementation("org.hibernate.validator:hibernate-validator:8.0.0.Final")
 
     compileOnly("org.projectlombok:lombok")
     runtimeOnly("org.postgresql:postgresql")

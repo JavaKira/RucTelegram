@@ -1,8 +1,10 @@
 package com.github.javakira.ructelegrammbot;
 
 import com.github.javakira.ructelegrammbot.config.BotConfig;
+import com.github.javakira.ructelegrammbot.repository.SettingsRepository;
 import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -13,6 +15,9 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 @Component
 public class Bot extends TelegramLongPollingBot {
     final BotConfig config;
+
+    @Autowired
+    private SettingsRepository userRepository;
 
     public Bot(BotConfig config) { this.config = config; }
     @Override
