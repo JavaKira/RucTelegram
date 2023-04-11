@@ -2,6 +2,7 @@ package com.github.javakira.ructelegrammbot.parser;
 
 import com.github.javakira.ructelegrammbot.model.Card;
 
+import com.github.javakira.ructelegrammbot.model.Cards;
 import com.github.javakira.ructelegrammbot.model.Pair;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Connection;
@@ -27,7 +28,7 @@ public class HtmlScheduleParser implements ScheduleParser {
             = Executors.newFixedThreadPool(2);
 
     @Override
-    public CompletableFuture<List<Card>> getGroupCards(String branch, String kit, String group) {
+    public CompletableFuture<Cards> getGroupCards(String branch, String kit, String group) {
         return CompletableFuture.supplyAsync(() -> {
             List<Card> cards = new ArrayList<>();
             try {
@@ -43,7 +44,7 @@ public class HtmlScheduleParser implements ScheduleParser {
                 for (Element cardElement : cardElements) {
                     List<Pair> pairList = new ArrayList<>();
                     if (cardElements.size() <= 1)
-                        return cards;
+                        return new Cards(cards);
 
                     Elements pairs = cardElement.children();
                     Element header = pairs.get(0);
@@ -82,12 +83,12 @@ public class HtmlScheduleParser implements ScheduleParser {
                 log.error(data + " : " + e);
             }
 
-            return cards;
+            return new Cards(cards);
         }, executor);
     }
 
     @Override
-    public CompletableFuture<List<Card>> getEmployeeCards(String branch, String employee) {
+    public CompletableFuture<Cards> getEmployeeCards(String branch, String employee) {
         return CompletableFuture.supplyAsync(() -> {
             List<Card> cardList = new ArrayList<>();
             try {
@@ -102,7 +103,7 @@ public class HtmlScheduleParser implements ScheduleParser {
                 for (Element cardElement : cards) {
                     List<Pair> pairList = new ArrayList<>();
                     if (cards.size() <= 1)
-                        return cardList;
+                        return new Cards(cardList);
 
                     Elements pairs = cardElement.children();
                     Element header = pairs.get(0);
@@ -140,7 +141,7 @@ public class HtmlScheduleParser implements ScheduleParser {
                 log.error(data + " : " + e);
             }
 
-            return cardList;
+            return new Cards(cardList);
         });
     }
 }
