@@ -35,4 +35,28 @@ public class SettingsService {
     public void createSettings(long chatId) {
         repository.save(new Settings(chatId));
     }
+
+    public void setBranch(long chatId, String argument) {
+        Settings settings = getSettings(chatId);
+        settings.setBranch(argument);
+        saveSettings(settings);
+    }
+
+    public void setEmployee(long chatId, String argument) {
+        Settings settings = getSettings(chatId);
+        settings.setEmployeeKey(argument);
+        saveSettings(settings);
+    }
+
+    public void setKit(long chatId, String argument) {
+        Settings settings = getSettings(chatId);
+        settings.setKit(argument);
+        saveSettings(settings);
+    }
+
+    public void setGroup(long chatId, String argument) {
+        Settings settings = getSettings(chatId);
+        settings.setGroupKey(argument);
+        saveSettings(settings);
+    }
 }

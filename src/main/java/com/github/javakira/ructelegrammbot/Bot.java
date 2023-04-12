@@ -100,21 +100,21 @@ public class Bot extends TelegramLongPollingBot {
         registerCallbackQueryConsumer("branch", query -> {
             long chatId = query.update().getCallbackQuery().getMessage().getChatId();
             clearKeyboard(query.update().getCallbackQuery().getMessage());
-            setBranch(chatId, query.data());
+            service.setBranch(chatId, query.data());
             sendKits(chatId);
         });
 
         registerCallbackQueryConsumer("kit", query -> {
             long chatId = query.update().getCallbackQuery().getMessage().getChatId();
             clearKeyboard(query.update().getCallbackQuery().getMessage());
-            setKit(chatId, query.data());
+            service.setKit(chatId, query.data());
             sendGroups(chatId);
         });
 
         registerCallbackQueryConsumer("group", query -> {
             long chatId = query.update().getCallbackQuery().getMessage().getChatId();
             clearKeyboard(query.update().getCallbackQuery().getMessage());
-            setGroup(chatId, query.data());
+            service.setGroup(chatId, query.data());
             sendSettings(chatId);
         });
 
@@ -407,29 +407,5 @@ public class Bot extends TelegramLongPollingBot {
                 + "\n" + "Набор: " + service.getSettings(chatId).getKit()
                 + "\n" + "Группа: " + service.getSettings(chatId).getGroupKey();
         sendString(chatId, stringBuilder);
-    }
-
-    private void setBranch(long chatId, String argument) {
-        Settings settings = service.getSettings(chatId);
-        settings.setBranch(argument);
-        service.saveSettings(settings);
-    }
-
-    private void setEmployee(long chatId, String argument) {
-        Settings settings = service.getSettings(chatId);
-        settings.setEmployeeKey(argument);
-        service.saveSettings(settings);
-    }
-
-    private void setKit(long chatId, String argument) {
-        Settings settings = service.getSettings(chatId);
-        settings.setKit(argument);
-        service.saveSettings(settings);
-    }
-
-    private void setGroup(long chatId, String argument) {
-        Settings settings = service.getSettings(chatId);
-        settings.setGroupKey(argument);
-        service.saveSettings(settings);
     }
 }
