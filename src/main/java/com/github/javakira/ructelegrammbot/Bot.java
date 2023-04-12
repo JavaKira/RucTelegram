@@ -101,6 +101,7 @@ public class Bot extends TelegramLongPollingBot {
                     break;
                 case "group": //todo add sendSettings method that shows all settings
                     setGroup(chatId, split[1]);
+                    sendSettings(chatId);
                     break;
                 case "groupnext":
                     EditMessageReplyMarkup editMessageReplyMarkup = new EditMessageReplyMarkup();
@@ -244,6 +245,14 @@ public class Bot extends TelegramLongPollingBot {
 
             return new InlineKeyboardMarkup(buttons);
         });
+    }
+
+    private void sendSettings(long chatId) {
+        String stringBuilder = "Настройки этого чата:"
+                + "\n" + "Филиал: " + service.getSettings(chatId).getBranch()
+                + "\n" + "Набор: " + service.getSettings(chatId).getKit()
+                + "\n" + "Группа: " + service.getSettings(chatId).getGroupKey();
+        sendString(chatId, stringBuilder);
     }
 
     private void startBot(long chatId, String userName) {
