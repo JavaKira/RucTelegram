@@ -1,12 +1,14 @@
-package com.github.javakira.ructelegrammbot.handler;
+package com.github.javakira.ructelegrammbot.service;
 
+import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
 
-public class CommandHandler implements BotHandler {
+@Service
+public class CommandService implements BotService {
     private final Map<String, Consumer<Update>> commands = new HashMap<>();
 
     public void putCommand(String command, Consumer<Update> action) {

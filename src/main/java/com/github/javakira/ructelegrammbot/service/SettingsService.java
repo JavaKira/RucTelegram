@@ -2,6 +2,7 @@ package com.github.javakira.ructelegrammbot.service;
 
 import com.github.javakira.ructelegrammbot.model.Settings;
 import com.github.javakira.ructelegrammbot.repository.SettingsRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -10,6 +11,7 @@ import java.util.List;
 public class SettingsService {
     private final SettingsRepository repository;
 
+    @Autowired
     public SettingsService(SettingsRepository repository) {
         this.repository = repository;
     }

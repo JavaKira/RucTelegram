@@ -1,18 +1,20 @@
 package com.github.javakira.ructelegrammbot;
 
-import com.github.javakira.ructelegrammbot.handler.CallbackQueryHandler;
-import com.github.javakira.ructelegrammbot.handler.CommandHandler;
+import com.github.javakira.ructelegrammbot.service.CallbackQueryService;
+import com.github.javakira.ructelegrammbot.service.CommandService;
 import com.github.javakira.ructelegrammbot.config.BotConfig;
 import com.github.javakira.ructelegrammbot.model.*;
 import com.github.javakira.ructelegrammbot.parser.HtmlScheduleParser;
 import com.github.javakira.ructelegrammbot.parser.ScheduleParser;
 import com.github.javakira.ructelegrammbot.service.SettingsService;
+import jakarta.annotation.PostConstruct;
 import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageReplyMarkup;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
@@ -28,17 +30,21 @@ import java.util.function.Consumer;
 public class Bot extends TelegramLongPollingBot {
     final BotConfig config;
 
-    private final BotHandlers handlers = new BotHandlers();
-
     @Autowired
     private SettingsService service;
+    @Autowired
+    private CommandService commandService;
+    @Autowired
+    private CallbackQueryService callbackQueryService;
 
     public Bot(BotConfig config) {
         this.config = config;
+    }
 
-        handlers.add(CommandHandler.class, new CommandHandler());
-        handlers.add(CallbackQueryHandler.class, new CallbackQueryHandler(this, service));
+    @PostConstruct
+    public void init() {
         registerCommands();
+        registerCallbackQueryConsumers();
     }
 
     @Override
@@ -53,7 +59,8 @@ public class Bot extends TelegramLongPollingBot {
 
     @Override
     public void onUpdateReceived(@NotNull Update update) {
-        handlers.onUpdateReceived(update);
+        commandService.onUpdateReceived(update);
+        callbackQueryService.onUpdateReceived(update);
     }
 
     private void registerCommands() {
@@ -89,8 +96,76 @@ public class Bot extends TelegramLongPollingBot {
         registerCommand("/tomorrow", tomorrow);
     }
 
+    private void registerCallbackQueryConsumers() {
+        registerCallbackQueryConsumer("branch", query -> {
+            long chatId = query.update().getCallbackQuery().getMessage().getChatId();
+            clearKeyboard(query.update().getCallbackQuery().getMessage());
+            setBranch(chatId, query.data());
+            sendKits(chatId);
+        });
+
+        registerCallbackQueryConsumer("kit", query -> {
+            long chatId = query.update().getCallbackQuery().getMessage().getChatId();
+            clearKeyboard(query.update().getCallbackQuery().getMessage());
+            setKit(chatId, query.data());
+            sendGroups(chatId);
+        });
+
+        registerCallbackQueryConsumer("group", query -> {
+            long chatId = query.update().getCallbackQuery().getMessage().getChatId();
+            clearKeyboard(query.update().getCallbackQuery().getMessage());
+            setGroup(chatId, query.data());
+            sendSettings(chatId);
+        });
+
+        registerCallbackQueryConsumer("groupnext", query -> {
+            long chatId = query.update().getCallbackQuery().getMessage().getChatId();
+            EditMessageReplyMarkup editMessageReplyMarkup = new EditMessageReplyMarkup();
+            editMessageReplyMarkup.setMessageId(query.update().getCallbackQuery().getMessage().getMessageId());
+            editMessageReplyMarkup.setChatId(chatId);
+            createGroupsKeyboard(chatId, Integer.parseInt(query.data()) + 1).thenAccept(inlineKeyboardMarkup -> {
+                editMessageReplyMarkup.setReplyMarkup(inlineKeyboardMarkup);
+                try {
+                    execute(editMessageReplyMarkup);
+                } catch (TelegramApiException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+        });
+
+        registerCallbackQueryConsumer("groupprev", query -> {
+            long chatId = query.update().getCallbackQuery().getMessage().getChatId();
+            EditMessageReplyMarkup editMessageReplyMarkup = new EditMessageReplyMarkup();
+            editMessageReplyMarkup.setMessageId(query.update().getCallbackQuery().getMessage().getMessageId());
+            editMessageReplyMarkup.setChatId(chatId);
+            createGroupsKeyboard(chatId, Integer.parseInt(query.data()) - 1).thenAccept(inlineKeyboardMarkup -> {
+                editMessageReplyMarkup.setReplyMarkup(inlineKeyboardMarkup);
+                try {
+                    execute(editMessageReplyMarkup);
+                } catch (TelegramApiException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+        });
+    }
+
     private void registerCommand(String command, Consumer<Update> action) {
-        handlers.get(CommandHandler.class).putCommand(command, action);
+        commandService.putCommand(command, action);
+    }
+
+    private void registerCallbackQueryConsumer(String command, Consumer<CallbackQueryService.CallbackQuery> action) {
+        callbackQueryService.putCallbackQueryConsumer(command, action);
+    }
+
+    private void clearKeyboard(Message message) {
+        EditMessageReplyMarkup editMessageReplyMarkup = new EditMessageReplyMarkup();
+        editMessageReplyMarkup.setMessageId(message.getMessageId());
+        editMessageReplyMarkup.setChatId(message.getChatId());
+        try {
+            execute(editMessageReplyMarkup);
+        } catch (TelegramApiException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private void sendBranches(long chatId, Message message) {
@@ -245,5 +320,116 @@ public class Bot extends TelegramLongPollingBot {
         } catch (TelegramApiException e){
             log.error(e.getMessage());
         }
+    }
+
+    private CompletableFuture<InlineKeyboardMarkup> createGroupsKeyboard(long chatId, int page) {
+        ScheduleParser scheduleParser = new HtmlScheduleParser();
+        return scheduleParser.getGroups(
+                service.getSettings(chatId).getBranch(),
+                service.getSettings(chatId).getKit()
+        ).thenApply(groups -> {
+            List<List<InlineKeyboardButton>> buttons = new LinkedList<>();
+            List<InlineKeyboardButton> buttons1 = new LinkedList<>();
+            if (page != 0)
+                buttons1.add(
+                        InlineKeyboardButton.builder()
+                                .text("предыдущее")
+                                .callbackData("groupprev " + page)
+                                .build()
+                );
+            for (int i = page * 14; i < page * 14 + 14; i++) {
+                Group group = groups.get(i);
+                buttons1.add(InlineKeyboardButton.builder()
+                        .text(group.title())
+                        .callbackData("group " + group.value())
+                        .build());
+
+                if (buttons1.size() >= 2) {
+                    buttons.add(buttons1);
+                    buttons1 = new LinkedList<>();
+                }
+            }
+            if ((page * 14 + 14) < groups.size()) {
+                buttons1.add(
+                        InlineKeyboardButton.builder()
+                                .text("следующее")
+                                .callbackData("groupnext " + page)
+                                .build()
+                );
+                buttons.add(buttons1);
+            }
+
+            return new InlineKeyboardMarkup(buttons);
+        });
+    }
+
+    private void sendKits(long chatId) {
+        SendMessage sendMessage = new SendMessage();
+        sendMessage.setChatId(chatId);
+        sendMessage.setText("Выбери набор\n");
+        ScheduleParser scheduleParser = new HtmlScheduleParser();
+        scheduleParser.getKits(service.getSettings(chatId).getBranch()).thenAccept(kits -> {
+            List<List<InlineKeyboardButton>> buttons = new LinkedList<>();
+            for (Kit kit : kits) {
+                buttons.add(List.of(InlineKeyboardButton.builder()
+                        .text(kit.title())
+                        .callbackData("kit " + kit.value())
+                        .build())
+                );
+            }
+
+            sendMessage.setReplyMarkup(new InlineKeyboardMarkup(buttons));
+            try {
+                execute(sendMessage);
+            } catch (TelegramApiException e){
+                log.error(e.getMessage());
+            }
+        });
+    }
+
+    private void sendGroups(long chatId) {
+        SendMessage sendMessage = new SendMessage();
+        sendMessage.setChatId(chatId);
+        sendMessage.setText("Выбери группу\n");
+        createGroupsKeyboard(chatId, 0).thenAccept(inlineKeyboardMarkup -> {
+            sendMessage.setReplyMarkup(inlineKeyboardMarkup);
+            try {
+                execute(sendMessage);
+            } catch (TelegramApiException e){
+                log.error(e.getMessage());
+            }
+        });
+    }
+
+    private void sendSettings(long chatId) {
+        String stringBuilder = "Настройки этого чата:"
+                + "\n" + "Филиал: " + service.getSettings(chatId).getBranch()
+                + "\n" + "Набор: " + service.getSettings(chatId).getKit()
+                + "\n" + "Группа: " + service.getSettings(chatId).getGroupKey();
+        sendString(chatId, stringBuilder);
+    }
+
+    private void setBranch(long chatId, String argument) {
+        Settings settings = service.getSettings(chatId);
+        settings.setBranch(argument);
+        service.saveSettings(settings);
+    }
+
+    private void setEmployee(long chatId, String argument) {
+        Settings settings = service.getSettings(chatId);
+        settings.setEmployeeKey(argument);
+        service.saveSettings(settings);
+    }
+
+    private void setKit(long chatId, String argument) {
+        Settings settings = service.getSettings(chatId);
+        settings.setKit(argument);
+        service.saveSettings(settings);
+    }
+
+    private void setGroup(long chatId, String argument) {
+        Settings settings = service.getSettings(chatId);
+        settings.setGroupKey(argument);
+        service.saveSettings(settings);
     }
 }
