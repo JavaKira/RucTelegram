@@ -152,6 +152,9 @@ public class Bot extends TelegramLongPollingBot {
     }
 
     private void sendBranches(long chatId, Message message) {
+        if (!service.isSettingsExist4Chat(chatId))
+            service.createSettings(chatId);
+
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(chatId);
         sendMessage.setText("Выбери филиал\n");
