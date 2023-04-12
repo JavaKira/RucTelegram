@@ -54,7 +54,7 @@ public class Bot extends TelegramLongPollingBot {
             String[] split = messageText.split(" ");
 
             if (commands.containsKey(split[0].replace("@RucSchedule_bot", "")))
-                commands.get(split[0]).accept(update);
+                commands.get(split[0].replace("@RucSchedule_bot", "")).accept(update);
         }
 
         if (update.hasCallbackQuery()) {
