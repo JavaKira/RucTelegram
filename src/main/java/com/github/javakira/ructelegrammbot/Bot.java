@@ -21,7 +21,6 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 @Slf4j
 @Component
@@ -31,8 +30,11 @@ public class Bot extends TelegramLongPollingBot {
     @Autowired
     private SettingsService service;
 
+    private final Map<String, Consumer<Update>> commands = new HashMap<>();
+
     public Bot(BotConfig config) {
         this.config = config;
+        registerCommands();
     }
 
     @Override
@@ -50,39 +52,9 @@ public class Bot extends TelegramLongPollingBot {
         if (update.hasMessage() && update.getMessage().hasText()) {
             String messageText = update.getMessage().getText();
             String[] split = messageText.split(" ");
-            long chatId = update.getMessage().getChatId();
-            String memberName = update.getMessage().getFrom().getFirstName();
 
-            switch (split[0]) {
-                case "/start":
-                    startBot(chatId, memberName);
-                    break;
-                case "/настроить":
-                    sendBranches(chatId, update.getMessage());
-                    break;
-                case "/branch":
-                    setBranch(chatId, messageText.split(" ")[1]);
-                    break;
-                case "/employee":
-                    setEmployee(chatId, messageText.split(" ")[1]);
-                    break;
-                case "/kit":
-                    setKit(chatId, messageText.split(" ")[1]);
-                    break;
-                case "/group":
-                    setGroup(chatId, messageText.split(" ")[1]);
-                    break;
-                case "/сегодня":
-                case "/today":
-                    scheduleToday(chatId);
-                    break;
-                case "/завтра":
-                case "/tomorrow":
-                    scheduleTomorrow(chatId);
-                    break;
-                default:
-                    log.info("Unexpected message");
-            }
+            if (commands.containsKey(split[0].replace("@RucSchedule_bot", "")))
+                commands.get(split[0]).accept(update);
         }
 
         if (update.hasCallbackQuery()) {
@@ -140,6 +112,43 @@ public class Bot extends TelegramLongPollingBot {
                 throw new RuntimeException(e);
             }
         }
+    }
+
+    private void registerCommands() {
+        Consumer<Update> today = update -> {
+            long chatId = update.getMessage().getChatId();
+            scheduleToday(chatId);
+        };
+
+        Consumer<Update> tomorrow = update -> {
+            long chatId = update.getMessage().getChatId();
+            scheduleToday(chatId);
+        };
+
+        Consumer<Update> setup = update -> {
+            long chatId = update.getMessage().getChatId();
+            sendBranches(chatId, update.getMessage());
+        };
+
+        registerCommand("/start", update -> {
+            long chatId = update.getMessage().getChatId();
+            String memberName = update.getMessage().getFrom().getFirstName();
+            startBot(chatId, memberName);
+        });
+
+        //todo можно наверно сделать через String... вариации команды
+        registerCommand("/настроить", setup);
+        registerCommand("/setup", setup);
+
+        registerCommand("/сегодня", today);
+        registerCommand("/today", today);
+
+        registerCommand("/завтра", tomorrow);
+        registerCommand("/tomorrow", tomorrow);
+    }
+
+    private void registerCommand(String command, Consumer<Update> action) {
+        commands.put(command, action);
     }
 
     private void sendBranches(long chatId, Message message) {
