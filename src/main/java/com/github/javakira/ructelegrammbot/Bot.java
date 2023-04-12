@@ -122,7 +122,7 @@ public class Bot extends TelegramLongPollingBot {
 
         Consumer<Update> tomorrow = update -> {
             long chatId = update.getMessage().getChatId();
-            scheduleToday(chatId);
+            scheduleTomorrow(chatId);
         };
 
         Consumer<Update> setup = update -> {
