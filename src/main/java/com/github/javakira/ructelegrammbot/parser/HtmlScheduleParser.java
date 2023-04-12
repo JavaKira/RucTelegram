@@ -1,9 +1,7 @@
 package com.github.javakira.ructelegrammbot.parser;
 
-import com.github.javakira.ructelegrammbot.model.Card;
+import com.github.javakira.ructelegrammbot.model.*;
 
-import com.github.javakira.ructelegrammbot.model.Cards;
-import com.github.javakira.ructelegrammbot.model.Pair;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
@@ -11,6 +9,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -21,11 +20,114 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @Slf4j
 public class HtmlScheduleParser implements ScheduleParser {
     private final ExecutorService executor
             = Executors.newFixedThreadPool(2);
+
+    @Override
+    public CompletableFuture<List<Branch>> getBranches() {
+        return CompletableFuture.supplyAsync(() -> {
+            Elements elements;
+
+            try {
+                Connection connection = Jsoup.connect(link);
+                Document document = connection.post();
+                Element employee = document.getElementsByAttribute("name").stream()
+                        .filter(element -> element.attr("name").equals("branch"))
+                        .toList().get(0);
+                elements = employee.children();
+                elements.remove(0);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+
+            List<Branch> branchList = new ArrayList<>();
+            elements.forEach(element -> branchList.add(new Branch(element.text(), element.attr("value"))));
+            return branchList;
+        }, executor);
+    }
+
+    @Override
+    public CompletableFuture<List<Kit>> getKits(String branch) {
+        return CompletableFuture.supplyAsync(() -> {
+            Elements elements;
+
+            try {
+                Connection connection = Jsoup.connect(link);
+                HashMap<String, String> data = new HashMap<>();
+                data.put("branch", branch);
+                connection.data(data);
+                Document document = connection.post();
+                Element employee = document.getElementsByAttribute("name").stream()
+                        .filter(element -> element.attr("name").equals("year"))
+                        .toList().get(0);
+                elements = employee.children();
+                elements.remove(0);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+
+            List<Kit> kits = new ArrayList<>();
+            elements.forEach(element -> kits.add(new Kit(element.text(), element.attr("value"))));
+            return kits;
+        }, executor);
+    }
+
+    @Override
+    public CompletableFuture<List<Group>> getGroups(String branch, String kit) {
+        return CompletableFuture.supplyAsync(() -> {
+            Elements elements;
+
+            try {
+                Connection connection = Jsoup.connect(link);
+                HashMap<String, String> data = new HashMap<>();
+                data.put("branch", branch);
+                data.put("year", kit);
+                connection.data(data);
+                Document document = connection.post();
+                Element employee = document.getElementsByAttribute("name").stream()
+                        .filter(element -> element.attr("name").equals("group"))
+                        .toList().get(0);
+                elements = employee.children();
+                elements.remove(0);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+
+            List<Group> groups = new ArrayList<>();
+            elements.forEach(element -> groups.add(new Group(element.text(), element.attr("value"))));
+            return groups;
+        }, executor);
+    }
+
+    @Override
+    public CompletableFuture<List<Employee>> getEmployees(String branch) {
+        return CompletableFuture.supplyAsync(() -> {
+            Elements elements;
+
+            try {
+                Connection connection = Jsoup.connect(employeeLink);
+                HashMap<String, String> data = new HashMap<>();
+                data.put("branch", branch);
+                connection.data(data);
+                Document document = connection.post();
+                Element employee = document.getElementsByAttribute("name").stream()
+                        .filter(element -> element.attr("name").equals("employee"))
+                        .toList().get(0);
+                elements = employee.children();
+                elements.remove(0);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+
+            List<Employee> employees = new ArrayList<>();
+            elements.forEach(element -> employees.add(new Employee(element.text(), element.attr("value"))));
+            return employees;
+        }, executor);
+    }
 
     @Override
     public CompletableFuture<Cards> getGroupCards(String branch, String kit, String group) {
