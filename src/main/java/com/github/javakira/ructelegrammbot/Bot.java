@@ -1,5 +1,6 @@
 package com.github.javakira.ructelegrammbot;
 
+import com.github.javakira.ructelegrammbot.handler.CommandHandler;
 import com.github.javakira.ructelegrammbot.config.BotConfig;
 import com.github.javakira.ructelegrammbot.model.*;
 import com.github.javakira.ructelegrammbot.parser.HtmlScheduleParser;
@@ -27,13 +28,15 @@ import java.util.function.Consumer;
 public class Bot extends TelegramLongPollingBot {
     final BotConfig config;
 
+    private final BotHandlers handlers = new BotHandlers();
+
     @Autowired
     private SettingsService service;
 
-    private final Map<String, Consumer<Update>> commands = new HashMap<>();
-
     public Bot(BotConfig config) {
         this.config = config;
+
+        handlers.add(CommandHandler.class, new CommandHandler());
         registerCommands();
     }
 
@@ -49,13 +52,7 @@ public class Bot extends TelegramLongPollingBot {
 
     @Override
     public void onUpdateReceived(@NotNull Update update) {
-        if (update.hasMessage() && update.getMessage().hasText()) {
-            String messageText = update.getMessage().getText();
-            String[] split = messageText.split(" ");
-
-            if (commands.containsKey(split[0].replace("@RucSchedule_bot", "")))
-                commands.get(split[0].replace("@RucSchedule_bot", "")).accept(update);
-        }
+        handlers.onUpdateReceived(update);
 
         if (update.hasCallbackQuery()) {
             long chatId = update.getCallbackQuery().getMessage().getChatId();
@@ -148,7 +145,7 @@ public class Bot extends TelegramLongPollingBot {
     }
 
     private void registerCommand(String command, Consumer<Update> action) {
-        commands.put(command, action);
+        handlers.get(CommandHandler.class).putCommand(command, action);
     }
 
     private void sendBranches(long chatId, Message message) {
