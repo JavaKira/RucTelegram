@@ -283,7 +283,7 @@ public class Bot extends TelegramLongPollingBot {
 
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder
-                .append("Расписание на ")
+                .append("#Расписание на ")
                 .append(card.date().getDate())
                 .append(".")
                 .append(card.date().getMonth() + 1)
