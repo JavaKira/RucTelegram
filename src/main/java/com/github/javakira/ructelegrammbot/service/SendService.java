@@ -10,9 +10,7 @@ import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -72,6 +70,7 @@ public class SendService {
                 .append(card.date().getMonth() + 1)
                 .append(".")
                 .append(card.date().getYear() + 1900)
+                .append(" (").append(formatDayOfWeek(card.date())).append(")")
                 .append("\n");
         for (Pair pair : card.pairList()) {
             stringBuilder.append("\n");
@@ -83,6 +82,37 @@ public class SendService {
 
         message.setText(stringBuilder.toString());
         return message;
+    }
+
+    private String formatDayOfWeek(Date date) {
+        Calendar calendar = new GregorianCalendar();
+        calendar.setTime(date);
+        switch (calendar.get(Calendar.DAY_OF_WEEK)) {
+            case 2 -> {
+                return "Понедельник";
+            }
+            case 3 -> {
+                return "Вторник";
+            }
+            case 4 -> {
+                return "Среда";
+            }
+            case 5 -> {
+                return "Четверг";
+            }
+            case 6 -> {
+                return "Пятница";
+            }
+            case 1 -> {
+                return "Суббота";
+            }
+            case 0 -> {
+                return "воскресенье";
+            }
+            default -> {
+                return "Хер знает че за день недели";
+            }
+        }
     }
 
     public CompletableFuture<SendMessage> sendKits(long chatId, Settings settings) {
