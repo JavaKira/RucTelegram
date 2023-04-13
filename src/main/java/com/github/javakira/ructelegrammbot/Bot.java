@@ -6,6 +6,7 @@ import com.github.javakira.ructelegrammbot.config.BotConfig;
 import com.github.javakira.ructelegrammbot.model.*;
 import com.github.javakira.ructelegrammbot.parser.HtmlScheduleParser;
 import com.github.javakira.ructelegrammbot.parser.ScheduleParser;
+import com.github.javakira.ructelegrammbot.service.SendService;
 import com.github.javakira.ructelegrammbot.service.SettingsService;
 import jakarta.annotation.PostConstruct;
 import jakarta.validation.constraints.NotNull;
@@ -36,6 +37,8 @@ public class Bot extends TelegramLongPollingBot {
     private CommandService commandService;
     @Autowired
     private CallbackQueryService callbackQueryService;
+    @Autowired
+    private SendService sendService;
 
     public Bot(BotConfig config) {
         this.config = config;
@@ -66,17 +69,28 @@ public class Bot extends TelegramLongPollingBot {
     private void registerCommands() {
         Consumer<Update> today = update -> {
             long chatId = update.getMessage().getChatId();
-            scheduleToday(chatId);
+            boolean checked = checkSettings(chatId);
+            if (checked)
+                sendService.scheduleToday(chatId, service.getSettings(chatId)).thenAccept(this::executeSendMessage);
+            else
+                executeSendMessage(sendService.sendNotConfigured(chatId));
         };
 
         Consumer<Update> tomorrow = update -> {
             long chatId = update.getMessage().getChatId();
-            scheduleTomorrow(chatId);
+            boolean checked = checkSettings(chatId);
+            if (checked)
+                sendService.scheduleTomorrow(chatId, service.getSettings(chatId)).thenAccept(this::executeSendMessage);
+            else
+                executeSendMessage(sendService.sendNotConfigured(chatId));
         };
 
         Consumer<Update> setup = update -> {
             long chatId = update.getMessage().getChatId();
-            sendBranches(chatId, update.getMessage());
+            if (!service.isSettingsExist4Chat(chatId))
+                service.createSettings(chatId);
+
+            sendService.sendBranches(chatId, update.getMessage()).thenAccept(this::executeSendMessage);
         };
 
         registerCommand("/start", update -> {
@@ -101,21 +115,23 @@ public class Bot extends TelegramLongPollingBot {
             long chatId = query.update().getCallbackQuery().getMessage().getChatId();
             clearKeyboard(query.update().getCallbackQuery().getMessage());
             service.setBranch(chatId, query.data());
-            sendKits(chatId);
+            sendService.sendKits(chatId, service.getSettings(chatId)).thenAccept(this::executeSendMessage);
         });
 
         registerCallbackQueryConsumer("kit", query -> {
             long chatId = query.update().getCallbackQuery().getMessage().getChatId();
             clearKeyboard(query.update().getCallbackQuery().getMessage());
             service.setKit(chatId, query.data());
-            sendGroups(chatId);
+            createGroupsKeyboard(chatId, 0).thenAccept(keyboardMarkup -> {
+                executeSendMessage(sendService.sendGroups(chatId, keyboardMarkup));
+            });
         });
 
         registerCallbackQueryConsumer("group", query -> {
             long chatId = query.update().getCallbackQuery().getMessage().getChatId();
             clearKeyboard(query.update().getCallbackQuery().getMessage());
             service.setGroup(chatId, query.data());
-            sendSettings(chatId);
+            executeSendMessage(sendService.sendSettings(chatId, service.getSettings(chatId)));
         });
 
         registerCallbackQueryConsumer("groupnext", query -> {
@@ -157,6 +173,27 @@ public class Bot extends TelegramLongPollingBot {
         callbackQueryService.putCallbackQueryConsumer(command, action);
     }
 
+    //todo можно переместить в SettingsService
+    private boolean checkSettings(long chatId) {
+        if (!service.isSettingsExist4Chat(chatId)) {
+            return false;
+        } else {
+            Settings settings = service.getSettings(chatId);
+            if (settings.getBranch() == null)
+                return false;
+
+            if (settings.isEmployee())
+                return settings.getEmployeeKey() != null;
+            else {
+                if (settings.getKit() == null) {
+                    return false;
+                }
+
+                return settings.getGroupKey() != null;
+            }
+        }
+    }
+
     private void clearKeyboard(Message message) {
         EditMessageReplyMarkup editMessageReplyMarkup = new EditMessageReplyMarkup();
         editMessageReplyMarkup.setMessageId(message.getMessageId());
@@ -166,35 +203,6 @@ public class Bot extends TelegramLongPollingBot {
         } catch (TelegramApiException e) {
             throw new RuntimeException(e);
         }
-    }
-
-    private void sendBranches(long chatId, Message message) {
-        if (!service.isSettingsExist4Chat(chatId))
-            service.createSettings(chatId);
-
-        SendMessage sendMessage = new SendMessage();
-        sendMessage.setChatId(chatId);
-        sendMessage.setText("Выбери филиал\n");
-        ScheduleParser scheduleParser = new HtmlScheduleParser();
-        scheduleParser.getBranches().thenAccept(branches -> {
-            List<List<InlineKeyboardButton>> buttons = new LinkedList<>();
-            for (Branch branch : branches) {
-                buttons.add(List.of(InlineKeyboardButton.builder()
-                        .text(branch.title())
-                        .callbackData("branch " + branch.value())
-                        .build())
-                );
-            }
-
-            sendMessage.setReplyToMessageId(message.getMessageId());
-            sendMessage.setReplyMarkup(new InlineKeyboardMarkup(buttons));
-
-            try {
-                execute(sendMessage);
-            } catch (TelegramApiException e){
-                log.error(e.getMessage());
-            }
-        });
     }
 
     private void startBot(long chatId, String userName) {
@@ -210,114 +218,6 @@ public class Bot extends TelegramLongPollingBot {
         try {
             execute(message);
         } catch (TelegramApiException e) {
-            log.error(e.getMessage());
-        }
-    }
-
-    private void scheduleToday(long chatId) {
-        schedule(chatId, cards -> {
-            Optional<Card> card = cards.getToday();
-            if (card.isPresent()) {
-                sendCard(chatId, card.get());
-            } else {
-                sendString(chatId, "На сегодня расписания нет.");
-            }
-        });
-    }
-
-    private void scheduleTomorrow(long chatId) {
-        schedule(chatId, cards -> {
-            Optional<Card> card = cards.getTomorrow();
-            if (card.isPresent()) {
-                sendCard(chatId, card.get());
-            } else {
-                sendString(chatId, "На завтра расписания нет.");
-            }
-        });
-    }
-
-    private void schedule(long chatId, Consumer<Cards> cardsConsumer) {
-        SendMessage message = new SendMessage();
-        message.setChatId(chatId);
-
-        if (!service.isSettingsExist4Chat(chatId)) {
-            sendNotConfigured(chatId);
-        } else {
-            Settings settings = service.getSettings(chatId);
-            ScheduleParser parser = new HtmlScheduleParser();
-            CompletableFuture<Cards> future;
-            if (settings.getBranch() == null) {
-                sendNotConfigured(chatId);
-                return;
-            }
-
-            if (settings.isEmployee()) {
-                if (settings.getEmployeeKey() == null) {
-                    sendNotConfigured(chatId);
-                    return;
-                }
-
-                future = parser.getEmployeeCards(settings.getBranch(), settings.getEmployeeKey());
-            } else {
-                if (settings.getKit() == null) {
-                    sendNotConfigured(chatId);
-                    return;
-                }
-
-                if (settings.getGroupKey() == null) {
-                    sendNotConfigured(chatId);
-                    return;
-                }
-
-                future = parser.getGroupCards(settings.getBranch(), settings.getKit(), settings.getGroupKey());
-            }
-
-            future.thenAccept(cardsConsumer);
-        }
-
-    }
-
-    private void sendCard(long chatId, Card card) {
-        SendMessage message = new SendMessage();
-        message.setChatId(chatId);
-
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder
-                .append("#Расписание на ")
-                .append(card.date().getDate())
-                .append(".")
-                .append(card.date().getMonth() + 1)
-                .append(".")
-                .append(card.date().getYear() + 1900)
-                .append("\n");
-        for (Pair pair : card.pairList()) {
-            stringBuilder.append("\n");
-            stringBuilder.append(pair.getIndex() + 1).append(". ").append(pair.getName()).append("\n");
-            stringBuilder.append(pair.getBy()).append("\n");
-            stringBuilder.append(pair.getPlace()).append("\n");
-            stringBuilder.append(pair.getType()).append("\n");
-        }
-
-        message.setText(stringBuilder.toString());
-
-        try {
-            execute(message);
-        } catch (TelegramApiException e){
-            log.error(e.getMessage());
-        }
-    }
-
-    private void sendNotConfigured(long chatId) {
-        sendString(chatId, "Бот не настроен");
-    }
-
-    private void sendString(long chatId, String string) {
-        SendMessage message = new SendMessage();
-        message.setChatId(chatId);
-        message.setText(string);
-        try {
-            execute(message);
-        } catch (TelegramApiException e){
             log.error(e.getMessage());
         }
     }
@@ -363,49 +263,11 @@ public class Bot extends TelegramLongPollingBot {
         });
     }
 
-    private void sendKits(long chatId) {
-        SendMessage sendMessage = new SendMessage();
-        sendMessage.setChatId(chatId);
-        sendMessage.setText("Выбери набор\n");
-        ScheduleParser scheduleParser = new HtmlScheduleParser();
-        scheduleParser.getKits(service.getSettings(chatId).getBranch()).thenAccept(kits -> {
-            List<List<InlineKeyboardButton>> buttons = new LinkedList<>();
-            for (Kit kit : kits) {
-                buttons.add(List.of(InlineKeyboardButton.builder()
-                        .text(kit.title())
-                        .callbackData("kit " + kit.value())
-                        .build())
-                );
-            }
-
-            sendMessage.setReplyMarkup(new InlineKeyboardMarkup(buttons));
-            try {
-                execute(sendMessage);
-            } catch (TelegramApiException e){
-                log.error(e.getMessage());
-            }
-        });
-    }
-
-    private void sendGroups(long chatId) {
-        SendMessage sendMessage = new SendMessage();
-        sendMessage.setChatId(chatId);
-        sendMessage.setText("Выбери группу\n");
-        createGroupsKeyboard(chatId, 0).thenAccept(inlineKeyboardMarkup -> {
-            sendMessage.setReplyMarkup(inlineKeyboardMarkup);
-            try {
-                execute(sendMessage);
-            } catch (TelegramApiException e){
-                log.error(e.getMessage());
-            }
-        });
-    }
-
-    private void sendSettings(long chatId) {
-        String stringBuilder = "Настройки этого чата:"
-                + "\n" + "Филиал: " + service.getSettings(chatId).getBranch()
-                + "\n" + "Набор: " + service.getSettings(chatId).getKit()
-                + "\n" + "Группа: " + service.getSettings(chatId).getGroupKey();
-        sendString(chatId, stringBuilder);
+    private void executeSendMessage(SendMessage sendMessage) {
+        try {
+            execute(sendMessage);
+        } catch (TelegramApiException e) {
+            log.error(e.getMessage() + " : " + sendMessage);
+        }
     }
 }
