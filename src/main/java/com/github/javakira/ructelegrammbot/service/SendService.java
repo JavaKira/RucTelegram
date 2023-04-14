@@ -88,26 +88,26 @@ public class SendService {
         Calendar calendar = new GregorianCalendar();
         calendar.setTime(date);
         switch (calendar.get(Calendar.DAY_OF_WEEK)) {
-            case 2 -> {
+            case Calendar.SUNDAY -> {
+                return "воскресенье";
+            }
+            case Calendar.MONDAY -> {
                 return "Понедельник";
             }
-            case 3 -> {
+            case Calendar.TUESDAY -> {
                 return "Вторник";
             }
-            case 4 -> {
+            case Calendar.WEDNESDAY -> {
                 return "Среда";
             }
-            case 5 -> {
+            case Calendar.THURSDAY -> {
                 return "Четверг";
             }
-            case 6 -> {
+            case Calendar.FRIDAY -> {
                 return "Пятница";
             }
-            case 1 -> {
+            case Calendar.SATURDAY -> {
                 return "Суббота";
-            }
-            case 0 -> {
-                return "воскресенье";
             }
             default -> {
                 return "Хер знает че за день недели";
