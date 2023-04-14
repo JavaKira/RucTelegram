@@ -67,47 +67,37 @@ public class Bot extends TelegramLongPollingBot {
     }
 
     private void registerCommands() {
-        Consumer<Update> today = update -> {
-            long chatId = update.getMessage().getChatId();
-            boolean checked = checkSettings(chatId);
-            if (checked)
-                sendService.scheduleToday(chatId, service.getSettings(chatId)).thenAccept(this::executeSendMessage);
-            else
-                executeSendMessage(sendService.sendNotConfigured(chatId));
-        };
-
-        Consumer<Update> tomorrow = update -> {
-            long chatId = update.getMessage().getChatId();
-            boolean checked = checkSettings(chatId);
-            if (checked)
-                sendService.scheduleTomorrow(chatId, service.getSettings(chatId)).thenAccept(this::executeSendMessage);
-            else
-                executeSendMessage(sendService.sendNotConfigured(chatId));
-        };
-
-        Consumer<Update> setup = update -> {
-            long chatId = update.getMessage().getChatId();
-            if (!service.isSettingsExist4Chat(chatId))
-                service.createSettings(chatId);
-
-            sendService.sendBranches(chatId, update.getMessage()).thenAccept(this::executeSendMessage);
-        };
-
         registerCommand("/start", update -> {
             long chatId = update.getMessage().getChatId();
             String memberName = update.getMessage().getFrom().getFirstName();
             startBot(chatId, memberName);
         });
 
-        //todo можно наверно сделать через String... вариации команды
-        registerCommand("/настроить", setup);
-        registerCommand("/setup", setup);
+        registerCommands(update -> {
+            long chatId = update.getMessage().getChatId();
+            if (!service.isSettingsExist4Chat(chatId))
+                service.createSettings(chatId);
 
-        registerCommand("/сегодня", today);
-        registerCommand("/today", today);
+            sendService.sendBranches(chatId, update.getMessage()).thenAccept(this::executeSendMessage);
+        }, "/настроить", "/setup");
 
-        registerCommand("/завтра", tomorrow);
-        registerCommand("/tomorrow", tomorrow);
+        registerCommands(update -> {
+            long chatId = update.getMessage().getChatId();
+            boolean checked = checkSettings(chatId);
+            if (checked)
+                sendService.scheduleToday(chatId, service.getSettings(chatId)).thenAccept(this::executeSendMessage);
+            else
+                executeSendMessage(sendService.sendNotConfigured(chatId));
+        }, "/сегодня", "/today");
+
+        registerCommands(update -> {
+            long chatId = update.getMessage().getChatId();
+            boolean checked = checkSettings(chatId);
+            if (checked)
+                sendService.scheduleTomorrow(chatId, service.getSettings(chatId)).thenAccept(this::executeSendMessage);
+            else
+                executeSendMessage(sendService.sendNotConfigured(chatId));
+        }, "/завтра", "/tomorrow");
     }
 
     private void registerCallbackQueryConsumers() {
@@ -169,6 +159,11 @@ public class Bot extends TelegramLongPollingBot {
         commandService.putCommand(command, action);
     }
 
+    private void registerCommands(Consumer<Update> action, String... commands) {
+        for (String command : commands)
+            commandService.putCommand(command, action);
+    }
+
     private void registerCallbackQueryConsumer(String command, Consumer<CallbackQueryService.CallbackQuery> action) {
         callbackQueryService.putCallbackQueryConsumer(command, action);
     }
@@ -205,6 +200,7 @@ public class Bot extends TelegramLongPollingBot {
         }
     }
 
+    //todo переместить это чудо в SendService
     private void startBot(long chatId, String userName) {
         SendMessage message = new SendMessage();
         message.setChatId(chatId);
