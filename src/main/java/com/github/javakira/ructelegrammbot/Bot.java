@@ -16,6 +16,7 @@ import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageReplyMarkup;
+import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
@@ -68,15 +69,14 @@ public class Bot extends TelegramLongPollingBot {
 
     private void registerCommands() {
         registerCommand("/start", update -> {
-            long chatId = update.getMessage().getChatId();
             String memberName = update.getMessage().getFrom().getFirstName();
-            startBot(chatId, memberName);
+            startBot(update.getMessage().getChat(), memberName);
         });
 
         registerCommands(update -> {
             long chatId = update.getMessage().getChatId();
             if (!service.isSettingsExist4Chat(chatId))
-                service.createSettings(chatId);
+                service.createSettings(update.getMessage().getChat());
 
             sendService.sendBranches(chatId, update.getMessage()).thenAccept(this::executeSendMessage);
         }, "/настроить", "/setup");
@@ -201,12 +201,12 @@ public class Bot extends TelegramLongPollingBot {
     }
 
     //todo переместить это чудо в SendService
-    private void startBot(long chatId, String userName) {
+    private void startBot(Chat chat, String userName) {
         SendMessage message = new SendMessage();
-        message.setChatId(chatId);
+        message.setChatId(chat.getId());
 
-        if (!service.isSettingsExist4Chat(chatId)) {
-            service.createSettings(chatId);
+        if (!service.isSettingsExist4Chat(chat.getId())) {
+            service.createSettings(chat);
             message.setText("Привет, " + userName + "! Я бот с расписанием РУКа. Используй /help для помощи.");
         } else
             message.setText("Используй /help для помощи.");

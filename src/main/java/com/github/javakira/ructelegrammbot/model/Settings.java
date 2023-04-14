@@ -15,6 +15,12 @@ public class Settings {
     private long id;
     private long chatId;
 
+    //Chat data
+    private String username;
+    private String lastName;
+    private String firstName;
+    private String title;
+
     private boolean isEmployee;
 
     private String branch;
