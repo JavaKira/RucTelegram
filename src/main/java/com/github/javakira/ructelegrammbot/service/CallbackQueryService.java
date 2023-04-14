@@ -1,20 +1,8 @@
 package com.github.javakira.ructelegrammbot.service;
 
-import com.github.javakira.ructelegrammbot.Bot;
-import com.github.javakira.ructelegrammbot.model.Group;
-import com.github.javakira.ructelegrammbot.model.Kit;
-import com.github.javakira.ructelegrammbot.model.Settings;
-import com.github.javakira.ructelegrammbot.parser.HtmlScheduleParser;
-import com.github.javakira.ructelegrammbot.parser.ScheduleParser;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageReplyMarkup;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
-import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.util.HashMap;
 import java.util.Map;

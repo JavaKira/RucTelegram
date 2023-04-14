@@ -1,11 +1,14 @@
 package com.github.javakira.ructelegrammbot;
 
-import com.github.javakira.ructelegrammbot.service.CallbackQueryService;
-import com.github.javakira.ructelegrammbot.service.CommandService;
 import com.github.javakira.ructelegrammbot.config.BotConfig;
-import com.github.javakira.ructelegrammbot.model.*;
+import com.github.javakira.ructelegrammbot.model.Branch;
+import com.github.javakira.ructelegrammbot.model.Group;
+import com.github.javakira.ructelegrammbot.model.Kit;
+import com.github.javakira.ructelegrammbot.model.Settings;
 import com.github.javakira.ructelegrammbot.parser.HtmlScheduleParser;
 import com.github.javakira.ructelegrammbot.parser.ScheduleParser;
+import com.github.javakira.ructelegrammbot.service.CallbackQueryService;
+import com.github.javakira.ructelegrammbot.service.CommandService;
 import com.github.javakira.ructelegrammbot.service.SendService;
 import com.github.javakira.ructelegrammbot.service.SettingsService;
 import jakarta.annotation.PostConstruct;
@@ -16,14 +19,14 @@ import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageReplyMarkup;
-import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
-import java.util.*;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 

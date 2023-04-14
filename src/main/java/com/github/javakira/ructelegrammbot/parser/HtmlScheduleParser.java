@@ -1,7 +1,6 @@
 package com.github.javakira.ructelegrammbot.parser;
 
 import com.github.javakira.ructelegrammbot.model.*;
-
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
@@ -20,7 +19,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 @Slf4j
 public class HtmlScheduleParser implements ScheduleParser {
