@@ -68,11 +68,6 @@ public class Bot extends TelegramLongPollingBot {
     }
 
     private void registerCommands() {
-        registerCommand("/start", update -> {
-            String memberName = update.getMessage().getFrom().getFirstName();
-            startBot(update.getMessage().getChat(), memberName);
-        });
-
         registerCommands(update -> {
             long chatId = update.getMessage().getChatId();
             if (!service.isSettingsExist4Chat(chatId)) {
@@ -186,7 +181,7 @@ public class Bot extends TelegramLongPollingBot {
 
     private void registerCommands(Consumer<Update> action, String... commands) {
         for (String command : commands)
-            commandService.putCommand(command, action);
+            registerCommand(command, action);
     }
 
     private void registerCallbackQueryConsumer(String command, Consumer<CallbackQueryService.CallbackQuery> action) {
@@ -222,24 +217,6 @@ public class Bot extends TelegramLongPollingBot {
             execute(editMessageReplyMarkup);
         } catch (TelegramApiException e) {
             throw new RuntimeException(e);
-        }
-    }
-
-    //todo переместить это чудо в SendService
-    private void startBot(Chat chat, String userName) {
-        SendMessage message = new SendMessage();
-        message.setChatId(chat.getId());
-
-        if (!service.isSettingsExist4Chat(chat.getId())) {
-            service.createSettings(chat);
-            message.setText("Привет, " + userName + "! Я бот с расписанием РУКа. Используй /help для помощи.");
-        } else
-            message.setText("Используй /help для помощи.");
-
-        try {
-            execute(message);
-        } catch (TelegramApiException e) {
-            log.error(e.getMessage());
         }
     }
 
