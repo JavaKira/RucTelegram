@@ -24,11 +24,15 @@ public class Settings {
     private boolean isEmployee;
 
     private String branch;
+    private String branchTitle;
 
     private String employeeKey;
+    private String employeeTitle;
 
     private String kit;
+    private String kitTitle;
     private String groupKey;
+    private String groupTitle;
 
     public Settings(long chatId) {
         this.chatId = chatId;

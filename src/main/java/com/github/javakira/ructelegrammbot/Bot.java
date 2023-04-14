@@ -104,24 +104,39 @@ public class Bot extends TelegramLongPollingBot {
         registerCallbackQueryConsumer("branch", query -> {
             long chatId = query.update().getCallbackQuery().getMessage().getChatId();
             clearKeyboard(query.update().getCallbackQuery().getMessage());
-            service.setBranch(chatId, query.data());
-            sendService.sendKits(chatId, service.getSettings(chatId)).thenAccept(this::executeSendMessage);
+            ScheduleParser scheduleParser = new HtmlScheduleParser();
+            scheduleParser.getBranches().thenAccept(branches -> {
+                Branch branch = branches.stream().filter(branch1 -> branch1.value().equals(query.data())).findFirst().orElseThrow();
+                service.setBranch(chatId, branch);
+                sendService.sendKits(chatId, service.getSettings(chatId)).thenAccept(this::executeSendMessage);
+            });
         });
 
         registerCallbackQueryConsumer("kit", query -> {
             long chatId = query.update().getCallbackQuery().getMessage().getChatId();
             clearKeyboard(query.update().getCallbackQuery().getMessage());
-            service.setKit(chatId, query.data());
-            createGroupsKeyboard(chatId, 0).thenAccept(keyboardMarkup -> {
-                executeSendMessage(sendService.sendGroups(chatId, keyboardMarkup));
+            ScheduleParser scheduleParser = new HtmlScheduleParser();
+            scheduleParser.getKits(service.getSettings(chatId).getBranch()).thenAccept(kits -> {
+                Kit kit = kits.stream().filter(kit1 -> kit1.value().equals(query.data())).findFirst().orElseThrow();
+                service.setKit(chatId, kit);
+                createGroupsKeyboard(chatId, 0).thenAccept(keyboardMarkup -> {
+                    executeSendMessage(sendService.sendGroups(chatId, keyboardMarkup));
+                });
             });
         });
 
         registerCallbackQueryConsumer("group", query -> {
             long chatId = query.update().getCallbackQuery().getMessage().getChatId();
             clearKeyboard(query.update().getCallbackQuery().getMessage());
-            service.setGroup(chatId, query.data());
-            executeSendMessage(sendService.sendSettings(chatId, service.getSettings(chatId)));
+            ScheduleParser scheduleParser = new HtmlScheduleParser();
+            scheduleParser.getGroups(
+                    service.getSettings(chatId).getBranch(),
+                    service.getSettings(chatId).getKit()
+            ).thenAccept(groups -> {
+                Group group = groups.stream().filter(group1 -> group1.value().equals(query.data())).findFirst().orElseThrow();
+                service.setGroup(chatId, group);
+                executeSendMessage(sendService.sendSettings(chatId, service.getSettings(chatId)));
+            });
         });
 
         registerCallbackQueryConsumer("groupnext", query -> {

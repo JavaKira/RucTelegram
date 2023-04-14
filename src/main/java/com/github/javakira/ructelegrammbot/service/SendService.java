@@ -22,7 +22,7 @@ public class SendService {
         return schedule(chatId, settings).thenApply(cards -> {
             Optional<Card> card = cards.getToday();
             if (card.isPresent()) {
-                returnValue.set(sendCard(chatId, card.get()));
+                returnValue.set(sendCard(chatId, card.get(), settings));
             } else {
                 returnValue.set(sendString(chatId, "На сегодня расписания нет."));
             }
@@ -36,7 +36,7 @@ public class SendService {
         return schedule(chatId, settings).thenApply(cards -> {
             Optional<Card> card = cards.getTomorrow();
             if (card.isPresent()) {
-                returnValue.set(sendCard(chatId, card.get()));
+                returnValue.set(sendCard(chatId, card.get(), settings));
             } else {
                 returnValue.set(sendString(chatId, "На завтра расписания нет."));
             }
@@ -58,13 +58,13 @@ public class SendService {
         return future;
     }
 
-    public SendMessage sendCard(long chatId, Card card) {
+    public SendMessage sendCard(long chatId, Card card, Settings settings) {
         SendMessage message = new SendMessage();
         message.setChatId(chatId);
 
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder
-                .append("#Расписание на ")
+                .append("#Расписание ").append(settings.getGroupTitle()).append(" на ")
                 .append(card.date().getDate())
                 .append(".")
                 .append(card.date().getMonth() + 1)
@@ -166,9 +166,9 @@ public class SendService {
 
     public SendMessage sendSettings(long chatId, Settings settings) {
         String stringBuilder = "Настройки этого чата:"
-                + "\n" + "Филиал: " + settings.getBranch()
-                + "\n" + "Набор: " + settings.getKit()
-                + "\n" + "Группа: " + settings.getGroupKey();
+                + "\n" + "Филиал: " + settings.getBranchTitle()
+                + "\n" + "Набор: " + settings.getKitTitle()
+                + "\n" + "Группа: " + settings.getGroupTitle();
         return sendString(chatId, stringBuilder);
     }
 

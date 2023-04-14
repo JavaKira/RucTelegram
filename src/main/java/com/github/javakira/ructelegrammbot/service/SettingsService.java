@@ -1,6 +1,6 @@
 package com.github.javakira.ructelegrammbot.service;
 
-import com.github.javakira.ructelegrammbot.model.Settings;
+import com.github.javakira.ructelegrammbot.model.*;
 import com.github.javakira.ructelegrammbot.repository.SettingsRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -42,27 +42,31 @@ public class SettingsService {
         repository.save(settings);
     }
 
-    public void setBranch(long chatId, String argument) {
+    public void setBranch(long chatId, Branch argument) {
         Settings settings = getSettings(chatId);
-        settings.setBranch(argument);
+        settings.setBranch(argument.value());
+        settings.setBranchTitle(argument.title());
         saveSettings(settings);
     }
 
-    public void setEmployee(long chatId, String argument) {
+    public void setEmployee(long chatId, Employee argument) {
         Settings settings = getSettings(chatId);
-        settings.setEmployeeKey(argument);
+        settings.setEmployeeKey(argument.value());
+        settings.setEmployeeTitle(argument.title());
         saveSettings(settings);
     }
 
-    public void setKit(long chatId, String argument) {
+    public void setKit(long chatId, Kit argument) {
         Settings settings = getSettings(chatId);
-        settings.setKit(argument);
+        settings.setKit(argument.value());
+        settings.setKitTitle(argument.title());
         saveSettings(settings);
     }
 
-    public void setGroup(long chatId, String argument) {
+    public void setGroup(long chatId, Group argument) {
         Settings settings = getSettings(chatId);
-        settings.setGroupKey(argument);
+        settings.setGroupKey(argument.value());
+        settings.setGroupTitle(argument.title());
         saveSettings(settings);
     }
 }
