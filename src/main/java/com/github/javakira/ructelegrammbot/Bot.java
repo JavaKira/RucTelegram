@@ -75,10 +75,11 @@ public class Bot extends TelegramLongPollingBot {
 
         registerCommands(update -> {
             long chatId = update.getMessage().getChatId();
-            if (!service.isSettingsExist4Chat(chatId))
-                service.createSettings(update.getMessage().getChat());
-
-            sendService.sendBranches(chatId, update.getMessage()).thenAccept(this::executeSendMessage);
+            if (!service.isSettingsExist4Chat(chatId)) {
+                executeSendMessage(sendService.sendWarning(chatId, update.getMessage()));
+            } else {
+                sendService.sendBranches(chatId, update.getMessage()).thenAccept(this::executeSendMessage);
+            }
         }, "/настроить", "/setup");
 
         registerCommands(update -> {
@@ -101,6 +102,15 @@ public class Bot extends TelegramLongPollingBot {
     }
 
     private void registerCallbackQueryConsumers() {
+        registerCallbackQueryConsumer("warning", query -> {
+            Message message = query.update().getCallbackQuery().getMessage();
+            service.createSettings(message.getChat());
+            clearKeyboard(message);
+            Message setupMessage = new Message();
+            setupMessage.setMessageId(Integer.valueOf(query.data()));
+            sendService.sendBranches(message.getChatId(), setupMessage).thenAccept(this::executeSendMessage);
+        });
+
         registerCallbackQueryConsumer("branch", query -> {
             long chatId = query.update().getCallbackQuery().getMessage().getChatId();
             clearKeyboard(query.update().getCallbackQuery().getMessage());
