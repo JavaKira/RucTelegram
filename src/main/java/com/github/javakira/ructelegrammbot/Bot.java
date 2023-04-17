@@ -125,13 +125,21 @@ public class Bot extends TelegramLongPollingBot {
 
         registerCallbackQueryConsumer("kit", query -> {
             long chatId = query.update().getCallbackQuery().getMessage().getChatId();
-            clearKeyboard(query.update().getCallbackQuery().getMessage());
             ScheduleParser scheduleParser = new HtmlScheduleParser();
             scheduleParser.getKits(service.getSettings(chatId).getBranch()).thenAccept(kits -> {
                 Kit kit = kits.stream().filter(kit1 -> kit1.value().equals(query.data())).findFirst().orElseThrow();
-                service.setKit(chatId, kit);
-                createGroupsKeyboard(chatId, 0).thenAccept(keyboardMarkup -> {
-                    executeSendMessage(sendService.sendGroups(chatId, keyboardMarkup));
+
+                //todo подумать над оптимизацией - скачивать список групп слишком жирно
+                scheduleParser.getGroups(service.getSettings(chatId).getBranch(), kit.value()).thenAccept(groups -> {
+                    if (groups.isEmpty()) {
+                        executeSendMessage(sendService.sendString(chatId, kit.title() + " недоступен"));
+                    } else {
+                        clearKeyboard(query.update().getCallbackQuery().getMessage());
+                        service.setKit(chatId, kit);
+                        createGroupsKeyboard(chatId, 0).thenAccept(keyboardMarkup -> {
+                            executeSendMessage(sendService.sendGroups(chatId, keyboardMarkup));
+                        });
+                    }
                 });
             });
         });

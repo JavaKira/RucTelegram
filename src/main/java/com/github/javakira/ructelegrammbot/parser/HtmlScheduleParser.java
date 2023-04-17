@@ -91,8 +91,9 @@ public class HtmlScheduleParser implements ScheduleParser {
                         .toList().get(0);
                 elements = employee.children();
                 elements.remove(0);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
+            } catch (Exception e) {
+                //todo переделать весь парсер под ета
+                return new ArrayList<>();
             }
 
             List<Group> groups = new ArrayList<>();
