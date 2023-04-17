@@ -157,7 +157,7 @@ public class SendService {
     }
 
     public SendMessage sendWarning(long chatId, Message message) {
-        SendMessage sendMessage = sendString(chatId, "Данный бот не гарантирует точного расписания\n\nИсточник всех данных - официальный сайт (schedule.ruc.su)");
+        SendMessage sendMessage = sendString(chatId, "Данный бот не гарантирует точного расписания\n\nИсточник всех данных - официальный сайт (schedule.ruc.su)\n\nАвтор сего чуда - @javapedik");
         InlineKeyboardMarkup markup = new InlineKeyboardMarkup(List.of(List.of(
                InlineKeyboardButton.builder().text("Я понимаю").callbackData("warning " + message.getMessageId()).build()
         )));

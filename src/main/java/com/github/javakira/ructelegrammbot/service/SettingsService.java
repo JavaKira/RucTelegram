@@ -26,7 +26,7 @@ public class SettingsService {
     }
 
     public Settings getSettings(long chatId) {
-        return getAll().stream().filter(settings -> settings.getChatId() == chatId).findAny().orElseThrow();
+        return getAll().stream().filter(settings -> settings.getChatId() == chatId).findAny().orElse(null);
     }
 
     public void saveSettings(Settings settings) {
