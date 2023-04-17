@@ -5,12 +5,10 @@ import com.github.javakira.ructelegrammbot.model.Branch;
 import com.github.javakira.ructelegrammbot.model.Group;
 import com.github.javakira.ructelegrammbot.model.Kit;
 import com.github.javakira.ructelegrammbot.model.Settings;
+import com.github.javakira.ructelegrammbot.model.statistic.CommandUsageStatistic;
 import com.github.javakira.ructelegrammbot.parser.HtmlScheduleParser;
 import com.github.javakira.ructelegrammbot.parser.ScheduleParser;
-import com.github.javakira.ructelegrammbot.service.CallbackQueryService;
-import com.github.javakira.ructelegrammbot.service.CommandService;
-import com.github.javakira.ructelegrammbot.service.SendService;
-import com.github.javakira.ructelegrammbot.service.SettingsService;
+import com.github.javakira.ructelegrammbot.service.*;
 import jakarta.annotation.PostConstruct;
 import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
@@ -19,12 +17,15 @@ import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageReplyMarkup;
+import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -43,6 +44,8 @@ public class Bot extends TelegramLongPollingBot {
     private CallbackQueryService callbackQueryService;
     @Autowired
     private SendService sendService;
+    @Autowired
+    private CommandUsageStatisticService commandUsageStatisticService;
 
     public Bot(BotConfig config) {
         this.config = config;
@@ -179,7 +182,19 @@ public class Bot extends TelegramLongPollingBot {
     }
 
     private void registerCommand(String command, Consumer<Update> action) {
-        commandService.putCommand(command, action);
+        commandService.putCommand(command, update -> {
+            Chat chat = update.getMessage().getChat();
+            commandUsageStatisticService.add(CommandUsageStatistic.builder()
+                            .chatFirstName(chat.getFirstName())
+                            .chatLastName(chat.getLastName())
+                            .chatUsername(chat.getUserName())
+                            .chatTitle(chat.getTitle())
+                            .command(command)
+                            .date(new Date())
+                            .userUsername(update.getMessage().getFrom().getUserName())
+                            .build());
+            action.accept(update);
+        });
     }
 
     private void registerCommands(Consumer<Update> action, String... commands) {
