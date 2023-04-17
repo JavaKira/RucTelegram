@@ -4,7 +4,6 @@ import com.github.javakira.ructelegrammbot.model.Settings;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
-import jakarta.persistence.OneToOne;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.NoArgsConstructor;
@@ -28,11 +27,28 @@ public class CommandUsageStatistic {
     public String chatLastName;
     public String chatFirstName;
     public String chatTitle;
-    @OneToOne
-    public Settings settings;
+
+    //Chat settings data
+    public String groupTitle;
+    public String branchTitle;
+    public String kitTitle;
+    public String employeeTitle;
 
     /**
      *username of user what use command
      */
     public String userUsername;
+
+    public static class CommandUsageStatisticBuilder {
+        public CommandUsageStatisticBuilder setSettings(Settings settings) {
+            if (settings != null) {
+                this.groupTitle = settings.getGroupTitle();
+                this.branchTitle = settings.getBranchTitle();
+                this.kitTitle = settings.getKitTitle();
+                this.employeeTitle = settings.getEmployeeTitle();
+            }
+
+            return this;
+        }
+    }
 }

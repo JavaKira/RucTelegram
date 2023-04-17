@@ -191,6 +191,7 @@ public class Bot extends TelegramLongPollingBot {
                             .chatTitle(chat.getTitle())
                             .command(command)
                             .date(new Date())
+                            .setSettings(service.getSettings(chat.getId()))
                             .userUsername(update.getMessage().getFrom().getUserName())
                             .build());
             action.accept(update);
