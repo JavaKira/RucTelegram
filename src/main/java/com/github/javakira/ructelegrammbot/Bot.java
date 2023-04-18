@@ -124,7 +124,7 @@ public class Bot extends TelegramLongPollingBot {
         registerCallbackQueryConsumer("branch", query -> {
             long chatId = query.update().getCallbackQuery().getMessage().getChatId();
             clearKeyboard(query.update().getCallbackQuery().getMessage());
-            ScheduleParser scheduleParser = new HtmlScheduleParser();
+            ScheduleParser scheduleParser = HtmlScheduleParser.instance();
             scheduleParser.getBranches().thenAccept(branches -> {
                 Branch branch = branches.stream().filter(branch1 -> branch1.value().equals(query.data())).findFirst().orElseThrow();
                 service.setBranch(chatId, branch);
@@ -134,7 +134,7 @@ public class Bot extends TelegramLongPollingBot {
 
         registerCallbackQueryConsumer("kit", query -> {
             long chatId = query.update().getCallbackQuery().getMessage().getChatId();
-            ScheduleParser scheduleParser = new HtmlScheduleParser();
+            ScheduleParser scheduleParser = HtmlScheduleParser.instance();
             scheduleParser.getKits(service.getSettings(chatId).getBranch()).thenAccept(kits -> {
                 Kit kit = kits.stream().filter(kit1 -> kit1.value().equals(query.data())).findFirst().orElseThrow();
 
@@ -156,7 +156,7 @@ public class Bot extends TelegramLongPollingBot {
         registerCallbackQueryConsumer("group", query -> {
             long chatId = query.update().getCallbackQuery().getMessage().getChatId();
             clearKeyboard(query.update().getCallbackQuery().getMessage());
-            ScheduleParser scheduleParser = new HtmlScheduleParser();
+            ScheduleParser scheduleParser = HtmlScheduleParser.instance();
             scheduleParser.getGroups(
                     service.getSettings(chatId).getBranch(),
                     service.getSettings(chatId).getKit()
@@ -236,7 +236,7 @@ public class Bot extends TelegramLongPollingBot {
     }
 
     private CompletableFuture<InlineKeyboardMarkup> createGroupsKeyboard(long chatId, int page) {
-        ScheduleParser scheduleParser = new HtmlScheduleParser();
+        ScheduleParser scheduleParser = HtmlScheduleParser.instance();
         return scheduleParser.getGroups(
                 service.getSettings(chatId).getBranch(),
                 service.getSettings(chatId).getKit()

@@ -22,8 +22,21 @@ import java.util.regex.Pattern;
 
 @Slf4j
 public class HtmlScheduleParser implements ScheduleParser {
+    private static HtmlScheduleParser instance;
+
     private final ExecutorService executor
             = Executors.newFixedThreadPool(2);
+
+    public static ScheduleParser instance() {
+        if (instance == null)
+            instance = new HtmlScheduleParser();
+
+        return instance;
+    }
+
+    private HtmlScheduleParser() {
+
+    }
 
     @Override
     public CompletableFuture<List<Branch>> getBranches() {

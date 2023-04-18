@@ -55,7 +55,7 @@ public class SendService {
     private CompletableFuture<Cards> schedule(long chatId, Settings settings) {
         SendMessage message = new SendMessage();
         message.setChatId(chatId);
-        ScheduleParser parser = new HtmlScheduleParser();
+        ScheduleParser parser = HtmlScheduleParser.instance();
         CompletableFuture<Cards> future;
         if (settings.isEmployee())
             future = parser.getEmployeeCards(settings.getBranch(), settings.getEmployeeKey());
@@ -110,7 +110,7 @@ public class SendService {
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(chatId);
         sendMessage.setText("Выбери набор\n");
-        ScheduleParser scheduleParser = new HtmlScheduleParser();
+        ScheduleParser scheduleParser = HtmlScheduleParser.instance();
         return scheduleParser.getKits(settings.getBranch()).thenApply(kits -> {
             List<List<InlineKeyboardButton>> buttons = new LinkedList<>();
             for (Kit kit : kits) {
@@ -130,7 +130,7 @@ public class SendService {
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(chatId);
         sendMessage.setText("Выбери филиал\n");
-        ScheduleParser scheduleParser = new HtmlScheduleParser();
+        ScheduleParser scheduleParser = HtmlScheduleParser.instance();
         return scheduleParser.getBranches().thenApply(branches -> {
             List<List<InlineKeyboardButton>> buttons = new LinkedList<>();
             for (Branch branch : branches) {
