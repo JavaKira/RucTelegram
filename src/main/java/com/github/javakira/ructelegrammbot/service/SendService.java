@@ -79,7 +79,7 @@ public class SendService {
                 .append("\n");
         for (Pair pair : card.pairList()) {
             stringBuilder.append("\n");
-            stringBuilder.append(pair.getIndex() + 1).append(". ").append(pair.getName()).append("\n");
+            stringBuilder.append(pair.getIndex() + 1).append(". ").append(pair.getName()).append(" ").append(Pair.getTimeByIndex(pair.getIndex())).append("\n");
             stringBuilder.append(pair.getBy()).append("\n");
             stringBuilder.append(pair.getPlace()).append("\n");
             stringBuilder.append(pair.getType()).append("\n");
