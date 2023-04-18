@@ -40,10 +40,12 @@ public class SendService {
             } else {
                 Calendar calendar = new GregorianCalendar();
                 calendar.add(Calendar.DAY_OF_MONTH, 1);
+                StringBuilder stringBuilder = new StringBuilder();
+                stringBuilder.append("На завтра расписания для ").append(settings.getGroupTitle()).append(" нет.");
                 if (calendar.get(Calendar.DAY_OF_WEEK) == Calendar.MONDAY)
-                    returnValue.set(sendString(chatId, "На завтра расписания для " + settings.getGroupTitle() + " нет.\n\nПохоже на то, что вы смотрите расписание на понедельник. Оно обычно появляется только в понедельник в 0:00"));
-                else
-                    returnValue.set(sendString(chatId, "На завтра расписания для " + settings.getGroupTitle() + " нет."));
+                    stringBuilder.append("\\n\\nПохоже на то, что вы смотрите расписание на понедельник. Оно обычно появляется только в понедельник в 0:00");
+
+                returnValue.set(sendString(chatId, stringBuilder.toString()));
             }
 
             return returnValue.get();
@@ -92,32 +94,16 @@ public class SendService {
     private String formatDayOfWeek(Date date) {
         Calendar calendar = new GregorianCalendar();
         calendar.setTime(date);
-        switch (calendar.get(Calendar.DAY_OF_WEEK)) {
-            case Calendar.SUNDAY -> {
-                return "воскресенье";
-            }
-            case Calendar.MONDAY -> {
-                return "Понедельник";
-            }
-            case Calendar.TUESDAY -> {
-                return "Вторник";
-            }
-            case Calendar.WEDNESDAY -> {
-                return "Среда";
-            }
-            case Calendar.THURSDAY -> {
-                return "Четверг";
-            }
-            case Calendar.FRIDAY -> {
-                return "Пятница";
-            }
-            case Calendar.SATURDAY -> {
-                return "Суббота";
-            }
-            default -> {
-                return "Хер знает че за день недели";
-            }
-        }
+        return switch (calendar.get(Calendar.DAY_OF_WEEK)) {
+            case Calendar.SUNDAY -> "воскресенье";
+            case Calendar.MONDAY -> "Понедельник";
+            case Calendar.TUESDAY -> "Вторник";
+            case Calendar.WEDNESDAY -> "Среда";
+            case Calendar.THURSDAY -> "Четверг";
+            case Calendar.FRIDAY -> "Пятница";
+            case Calendar.SATURDAY -> "Суббота";
+            default -> "Хер знает че за день недели";
+        };
     }
 
     public CompletableFuture<SendMessage> sendKits(long chatId, Settings settings) {
@@ -179,11 +165,10 @@ public class SendService {
     }
 
     public SendMessage sendSettings(long chatId, Settings settings) {
-        String stringBuilder = "Настройки этого чата:"
+        return sendString(chatId, "Настройки этого чата:"
                 + "\n" + "Филиал: " + settings.getBranchTitle()
                 + "\n" + "Набор: " + settings.getKitTitle()
-                + "\n" + "Группа: " + settings.getGroupTitle();
-        return sendString(chatId, stringBuilder);
+                + "\n" + "Группа: " + settings.getGroupTitle());
     }
 
     public SendMessage sendNotConfigured(long chatId) {
