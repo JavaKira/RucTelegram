@@ -81,7 +81,7 @@ public class SendService {
                 .append("\n");
         for (Pair pair : card.pairList()) {
             stringBuilder.append("\n");
-            stringBuilder.append(pair.getIndex() + 1).append(". ").append(pair.getName()).append(" ").append(Pair.getTimeByIndex(pair.getIndex())).append("\n");
+            stringBuilder.append(pair.getIndex() + 1).append(". ").append(pair.getName()).append(" ").append("\n");
             stringBuilder.append(pair.getBy()).append("\n");
             stringBuilder.append(pair.getPlace()).append("\n");
             stringBuilder.append(pair.getType()).append("\n");
@@ -145,6 +145,16 @@ public class SendService {
             sendMessage.setReplyMarkup(new InlineKeyboardMarkup(buttons));
             return sendMessage;
         });
+    }
+
+    public SendMessage sendPairSchedule(long chatId) {
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append("Расписание пар:\n\n");
+        for (int i = 0; i < 7; i++) {
+            stringBuilder.append(i + 1).append(" пара - ").append(Pair.getTimeByIndex(i)).append("\n");
+        }
+
+        return sendString(chatId, stringBuilder.toString());
     }
 
     public SendMessage sendWarning(long chatId, Message message) {

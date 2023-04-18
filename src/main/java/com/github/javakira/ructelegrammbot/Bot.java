@@ -109,6 +109,11 @@ public class Bot extends TelegramLongPollingBot {
             else
                 executeSendMessage(sendService.sendNotConfigured(chatId));
         }, "/завтра", "/tomorrow");
+
+        registerCommand("/pairschedule", update -> {
+            long chatId = update.getMessage().getChatId();
+            executeSendMessage(sendService.sendPairSchedule(chatId));
+        });
     }
 
     private void registerCallbackQueryConsumers() {
