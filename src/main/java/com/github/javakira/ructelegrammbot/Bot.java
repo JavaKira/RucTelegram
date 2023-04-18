@@ -85,7 +85,7 @@ public class Bot extends TelegramLongPollingBot {
 
         registerCommands(update -> {
             long chatId = update.getMessage().getChatId();
-            boolean checked = checkSettings(chatId);
+            boolean checked = service.checkSettings(chatId);
             if (checked)
                 sendService.scheduleToday(chatId, service.getSettings(chatId)).thenAccept(this::executeSendMessage);
             else
@@ -94,7 +94,7 @@ public class Bot extends TelegramLongPollingBot {
 
         registerCommands(update -> {
             long chatId = update.getMessage().getChatId();
-            boolean checked = checkSettings(chatId);
+            boolean checked = service.checkSettings(chatId);
             if (checked)
                 sendService.scheduleTomorrow(chatId, service.getSettings(chatId)).thenAccept(this::executeSendMessage);
             else
@@ -213,27 +213,6 @@ public class Bot extends TelegramLongPollingBot {
 
     private void registerCallbackQueryConsumer(String command, Consumer<CallbackQueryService.CallbackQuery> action) {
         callbackQueryService.putCallbackQueryConsumer(command, action);
-    }
-
-    //todo можно переместить в SettingsService
-    private boolean checkSettings(long chatId) {
-        if (!service.isSettingsExist4Chat(chatId)) {
-            return false;
-        } else {
-            Settings settings = service.getSettings(chatId);
-            if (settings.getBranch() == null)
-                return false;
-
-            if (settings.isEmployee())
-                return settings.getEmployeeKey() != null;
-            else {
-                if (settings.getKit() == null) {
-                    return false;
-                }
-
-                return settings.getGroupKey() != null;
-            }
-        }
     }
 
     private void clearKeyboard(Message message) {

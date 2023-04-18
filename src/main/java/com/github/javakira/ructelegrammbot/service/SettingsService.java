@@ -69,4 +69,24 @@ public class SettingsService {
         settings.setGroupTitle(argument.title());
         saveSettings(settings);
     }
+
+    public boolean checkSettings(long chatId) {
+        if (!isSettingsExist4Chat(chatId)) {
+            return false;
+        } else {
+            Settings settings = getSettings(chatId);
+            if (settings.getBranch() == null)
+                return false;
+
+            if (settings.isEmployee())
+                return settings.getEmployeeKey() != null;
+            else {
+                if (settings.getKit() == null) {
+                    return false;
+                }
+
+                return settings.getGroupKey() != null;
+            }
+        }
+    }
 }
