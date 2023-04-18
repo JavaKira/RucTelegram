@@ -28,6 +28,7 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
@@ -69,8 +70,16 @@ public class Bot extends TelegramLongPollingBot {
 
     @Override
     public void onUpdateReceived(@NotNull Update update) {
-        commandService.onUpdateReceived(update);
-        callbackQueryService.onUpdateReceived(update);
+        try {
+            commandService.onUpdateReceived(update);
+            callbackQueryService.onUpdateReceived(update);
+        } catch (Exception e) {
+            if (update.hasMessage() && update.getMessage().hasText())
+                executeSendMessage(sendService.sendException(update.getMessage().getChatId(), e));
+            else if (update.hasCallbackQuery()) {
+                executeSendMessage(sendService.sendException(update.getCallbackQuery().getMessage().getChatId(), e));
+            }
+        }
     }
 
     private void registerCommands() {

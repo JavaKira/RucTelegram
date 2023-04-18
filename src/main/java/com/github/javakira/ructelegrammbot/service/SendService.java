@@ -175,6 +175,18 @@ public class SendService {
         return sendString(chatId, "Бот не настроен");
     }
 
+    public SendMessage sendException(long chatId, Exception e) {
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append("Ошибка во время исполнения:\n\n");
+        stringBuilder.append(e.toString()).append("\n\n");
+        for (StackTraceElement str : e.getStackTrace())
+            stringBuilder.append(str.toString()).append("\n");
+
+        stringBuilder.append("\n\n@Javapedik уже скорее всего получил пинка под зад, но вы можете добавить ещё, чтобы он ускорился");
+        return sendString(chatId,
+                stringBuilder.toString());
+    }
+
     public SendMessage sendString(long chatId, String string) {
         SendMessage message = new SendMessage();
         message.setChatId(chatId);
