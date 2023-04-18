@@ -24,7 +24,7 @@ public class SendService {
             if (card.isPresent()) {
                 returnValue.set(sendCard(chatId, card.get(), settings));
             } else {
-                returnValue.set(sendString(chatId, "На сегодня расписания нет."));
+                returnValue.set(sendString(chatId, "На сегодня расписания для " + settings.getGroupTitle() + " нет."));
             }
 
             return returnValue.get();
@@ -41,9 +41,9 @@ public class SendService {
                 Calendar calendar = new GregorianCalendar();
                 calendar.add(Calendar.DAY_OF_MONTH, 1);
                 if (calendar.get(Calendar.DAY_OF_WEEK) == Calendar.MONDAY)
-                    returnValue.set(sendString(chatId, "На завтра расписания нет.\n\nПохоже на то, что вы смотрите расписание на понедельник. Оно обычно появляется только в понедельник в 0:00"));
+                    returnValue.set(sendString(chatId, "На завтра расписания для " + settings.getGroupTitle() + " нет.\n\nПохоже на то, что вы смотрите расписание на понедельник. Оно обычно появляется только в понедельник в 0:00"));
                 else
-                    returnValue.set(sendString(chatId, "На завтра расписания нет."));
+                    returnValue.set(sendString(chatId, "На завтра расписания для " + settings.getGroupTitle() + " нет."));
             }
 
             return returnValue.get();
