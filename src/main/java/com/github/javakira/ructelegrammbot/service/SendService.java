@@ -172,7 +172,7 @@ public class SendService {
     }
 
     public SendMessage sendNotConfigured(long chatId) {
-        return sendString(chatId, "Бот не настроен");
+        return sendString(chatId, "Бот не настроен. Используй /setup@RucSchedule_bot");
     }
 
     public SendMessage sendException(long chatId, Exception e) {
