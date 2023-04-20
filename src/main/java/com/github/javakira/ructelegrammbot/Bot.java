@@ -255,7 +255,7 @@ public class Bot extends TelegramLongPollingBot {
                                 .callbackData("groupprev " + page)
                                 .build()
                 );
-            for (int i = page * 14; i < page * 14 + 14; i++) {
+            for (int i = page * 14; i < Math.min(page * 14 + 14, groups.size()); i++) {
                 Group group = groups.get(i);
                 buttons1.add(InlineKeyboardButton.builder()
                         .text(group.title())
