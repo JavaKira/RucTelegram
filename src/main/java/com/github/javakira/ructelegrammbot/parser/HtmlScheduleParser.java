@@ -133,7 +133,6 @@ public class HtmlScheduleParser implements ScheduleParser {
         HashMap<String, String> data = new HashMap<>();
         data.put("branch", branch);
         data.put("year", kit);
-        int a = 10/0;
         data.put("group", group);
         Document document = document(data);
         Elements cardElements = document.getElementsByClass("card");
