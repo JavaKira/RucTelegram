@@ -9,10 +9,10 @@ public interface ScheduleParser {
     String link = "https://schedule.ruc.su/";
     String employeeLink = "https://schedule.ruc.su/employee/";
 
-    CompletableFuture<List<Branch>> getBranches();
-    CompletableFuture<List<Kit>> getKits(String branch);
-    CompletableFuture<List<Group>> getGroups(String branch, String kit);
-    CompletableFuture<List<Employee>> getEmployees(String branch);
-    CompletableFuture<Cards> getGroupCards(String branch, String kit, String group);
-    CompletableFuture<Cards> getEmployeeCards(String branch, String employee);
+    CompletableFuture<ScheduleParserResult<List<Branch>>> getBranches();
+    CompletableFuture<ScheduleParserResult<List<Kit>>> getKits(String branch);
+    CompletableFuture<ScheduleParserResult<List<Group>>> getGroups(String branch, String kit);
+    CompletableFuture<ScheduleParserResult<List<Employee>>> getEmployees(String branch);
+    CompletableFuture<ScheduleParserResult<Cards>> getGroupCards(String branch, String kit, String group);
+    CompletableFuture<ScheduleParserResult<Cards>> getEmployeeCards(String branch, String employee);
 }

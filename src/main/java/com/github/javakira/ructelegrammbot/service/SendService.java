@@ -1,8 +1,7 @@
 package com.github.javakira.ructelegrammbot.service;
 
 import com.github.javakira.ructelegrammbot.model.*;
-import com.github.javakira.ructelegrammbot.parser.HtmlScheduleParser;
-import com.github.javakira.ructelegrammbot.parser.ScheduleParser;
+import com.github.javakira.ructelegrammbot.parser.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -19,44 +18,66 @@ import java.util.concurrent.atomic.AtomicReference;
 public class SendService {
     public CompletableFuture<SendMessage> scheduleToday(long chatId, Settings settings) {
         AtomicReference<SendMessage> returnValue = new AtomicReference<>();
-        return schedule(chatId, settings).thenApply(cards -> {
-            Optional<Card> card = cards.getToday();
-            if (card.isPresent()) {
-                returnValue.set(sendCard(chatId, card.get(), settings));
-            } else {
-                returnValue.set(sendString(chatId, "На сегодня расписания для " + settings.getGroupTitle() + " нет."));
+        return schedule(chatId, settings).thenApply(listScheduleParserResult -> {
+            try {
+                return listScheduleParserResult.get();
+            } catch (ScheduleParserException e) {
+                return sendException(chatId, e);
             }
+        }).thenApply(object -> {
+            if (object instanceof SendMessage)
+                return (SendMessage) object;
+            else {
+                Cards cards = (Cards) object;
+                Optional<Card> card = cards.getToday();
+                if (card.isPresent()) {
+                    returnValue.set(sendCard(chatId, card.get(), settings));
+                } else {
+                    returnValue.set(sendString(chatId, "На сегодня расписания для " + settings.getGroupTitle() + " нет."));
+                }
 
-            return returnValue.get();
+                return returnValue.get();
+            }
         });
     }
 
     public CompletableFuture<SendMessage> scheduleTomorrow(long chatId, Settings settings) {
         AtomicReference<SendMessage> returnValue = new AtomicReference<>();
-        return schedule(chatId, settings).thenApply(cards -> {
-            Optional<Card> card = cards.getTomorrow();
-            if (card.isPresent()) {
-                returnValue.set(sendCard(chatId, card.get(), settings));
-            } else {
-                Calendar calendar = new GregorianCalendar();
-                calendar.add(Calendar.DAY_OF_MONTH, 1);
-                StringBuilder stringBuilder = new StringBuilder();
-                stringBuilder.append("На завтра расписания для ").append(settings.getGroupTitle()).append(" нет.");
-                if (calendar.get(Calendar.DAY_OF_WEEK) == Calendar.MONDAY)
-                    stringBuilder.append("\\n\\nПохоже на то, что вы смотрите расписание на понедельник. Оно обычно появляется только в понедельник в 0:00");
-
-                returnValue.set(sendString(chatId, stringBuilder.toString()));
+        return schedule(chatId, settings).thenApply(listScheduleParserResult -> {
+            try {
+                return listScheduleParserResult.get();
+            } catch (ScheduleParserException e) {
+                return sendException(chatId, e);
             }
+        }).thenApply(object -> {
+            if (object instanceof SendMessage)
+                return (SendMessage) object;
+            else {
+                Cards cards = (Cards) object;
+                Optional<Card> card = cards.getTomorrow();
+                if (card.isPresent()) {
+                    returnValue.set(sendCard(chatId, card.get(), settings));
+                } else {
+                    Calendar calendar = new GregorianCalendar();
+                    calendar.add(Calendar.DAY_OF_MONTH, 1);
+                    StringBuilder stringBuilder = new StringBuilder();
+                    stringBuilder.append("На завтра расписания для ").append(settings.getGroupTitle()).append(" нет.");
+                    if (calendar.get(Calendar.DAY_OF_WEEK) == Calendar.MONDAY)
+                        stringBuilder.append("\\n\\nПохоже на то, что вы смотрите расписание на понедельник. Оно обычно появляется только в понедельник в 0:00");
 
-            return returnValue.get();
+                    returnValue.set(sendString(chatId, stringBuilder.toString()));
+                }
+
+                return returnValue.get();
+            }
         });
     }
 
-    private CompletableFuture<Cards> schedule(long chatId, Settings settings) {
+    private CompletableFuture<ScheduleParserResult<Cards>> schedule(long chatId, Settings settings) {
         SendMessage message = new SendMessage();
         message.setChatId(chatId);
         ScheduleParser parser = HtmlScheduleParser.instance();
-        CompletableFuture<Cards> future;
+        CompletableFuture<ScheduleParserResult<Cards>> future;
         if (settings.isEmployee())
             future = parser.getEmployeeCards(settings.getBranch(), settings.getEmployeeKey());
         else
@@ -111,18 +132,23 @@ public class SendService {
         sendMessage.setChatId(chatId);
         sendMessage.setText("Выбери набор\n");
         ScheduleParser scheduleParser = HtmlScheduleParser.instance();
-        return scheduleParser.getKits(settings.getBranch()).thenApply(kits -> {
-            List<List<InlineKeyboardButton>> buttons = new LinkedList<>();
-            for (Kit kit : kits) {
-                buttons.add(List.of(InlineKeyboardButton.builder()
-                        .text(kit.title())
-                        .callbackData("kit " + kit.value())
-                        .build())
-                );
-            }
+        return scheduleParser.getKits(settings.getBranch()).thenApply(result -> {
+            try {
+                List<Kit> kits = result.get();
+                List<List<InlineKeyboardButton>> buttons = new LinkedList<>();
+                for (Kit kit : kits) {
+                    buttons.add(List.of(InlineKeyboardButton.builder()
+                            .text(kit.title())
+                            .callbackData("kit " + kit.value())
+                            .build())
+                    );
+                }
 
-            sendMessage.setReplyMarkup(new InlineKeyboardMarkup(buttons));
-            return sendMessage;
+                sendMessage.setReplyMarkup(new InlineKeyboardMarkup(buttons));
+                return sendMessage;
+            } catch (Exception e) {
+                return sendException(chatId, e);
+            }
         });
     }
 
@@ -131,19 +157,30 @@ public class SendService {
         sendMessage.setChatId(chatId);
         sendMessage.setText("Выбери филиал\n");
         ScheduleParser scheduleParser = HtmlScheduleParser.instance();
-        return scheduleParser.getBranches().thenApply(branches -> {
-            List<List<InlineKeyboardButton>> buttons = new LinkedList<>();
-            for (Branch branch : branches) {
-                buttons.add(List.of(InlineKeyboardButton.builder()
-                        .text(branch.title())
-                        .callbackData("branch " + branch.value())
-                        .build())
-                );
+        return scheduleParser.getBranches().thenApply(listScheduleParserResult -> {
+            try {
+                return listScheduleParserResult.get();
+            } catch (ScheduleParserException e) {
+                return sendException(chatId, e);
             }
+        }).thenApply(object -> {
+            if (object instanceof SendMessage)
+                return (SendMessage) object;
+            else {
+                List<Branch> branches = (List<Branch>) object;
+                List<List<InlineKeyboardButton>> buttons = new LinkedList<>();
+                for (Branch branch : branches) {
+                    buttons.add(List.of(InlineKeyboardButton.builder()
+                            .text(branch.title())
+                            .callbackData("branch " + branch.value())
+                            .build())
+                    );
+                }
 
-            sendMessage.setReplyToMessageId(message.getMessageId());
-            sendMessage.setReplyMarkup(new InlineKeyboardMarkup(buttons));
-            return sendMessage;
+                sendMessage.setReplyToMessageId(message.getMessageId());
+                sendMessage.setReplyMarkup(new InlineKeyboardMarkup(buttons));
+                return sendMessage;
+            }
         });
     }
 
@@ -185,7 +222,14 @@ public class SendService {
         return sendString(chatId, "Бот не настроен. Используй /setup@RucSchedule_bot");
     }
 
+    public SendMessage sendServerNotResponding(long chatId) {
+        return sendString(chatId, "Сервер не отвечает");
+    }
+
     public SendMessage sendException(long chatId, Exception e) {
+        if (e instanceof ServerNotRespondingException)
+            return sendServerNotResponding(chatId);
+
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append("Ошибка во время исполнения:\n\n");
         stringBuilder.append(e.toString()).append("\n\n");

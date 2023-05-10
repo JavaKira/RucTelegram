@@ -8,6 +8,8 @@ import com.github.javakira.ructelegrammbot.model.Settings;
 import com.github.javakira.ructelegrammbot.model.statistic.CommandUsageStatistic;
 import com.github.javakira.ructelegrammbot.parser.HtmlScheduleParser;
 import com.github.javakira.ructelegrammbot.parser.ScheduleParser;
+import com.github.javakira.ructelegrammbot.parser.ScheduleParserException;
+import com.github.javakira.ructelegrammbot.parser.ScheduleParserResult;
 import com.github.javakira.ructelegrammbot.service.*;
 import jakarta.annotation.PostConstruct;
 import jakarta.validation.constraints.NotNull;
@@ -25,10 +27,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMa
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
-import java.util.Date;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
@@ -130,7 +129,14 @@ public class Bot extends TelegramLongPollingBot {
             long chatId = query.update().getCallbackQuery().getMessage().getChatId();
             clearKeyboard(query.update().getCallbackQuery().getMessage());
             ScheduleParser scheduleParser = HtmlScheduleParser.instance();
-            scheduleParser.getBranches().thenAccept(branches -> {
+            scheduleParser.getBranches().thenApply(listScheduleParserResult -> {
+                try {
+                    return listScheduleParserResult.get();
+                } catch (ScheduleParserException e) {
+                    executeSendMessage(sendService.sendException(chatId, e));
+                    throw new RuntimeException();
+                }
+            }).thenAccept(branches -> {
                 Branch branch = branches.stream().filter(branch1 -> branch1.value().equals(query.data())).findFirst().orElseThrow();
                 service.setBranch(chatId, branch);
                 sendService.sendKits(chatId, service.getSettings(chatId)).thenAccept(this::executeSendMessage);
@@ -140,11 +146,26 @@ public class Bot extends TelegramLongPollingBot {
         registerCallbackQueryConsumer("kit", query -> {
             long chatId = query.update().getCallbackQuery().getMessage().getChatId();
             ScheduleParser scheduleParser = HtmlScheduleParser.instance();
-            scheduleParser.getKits(service.getSettings(chatId).getBranch()).thenAccept(kits -> {
+            scheduleParser.getKits(service.getSettings(chatId).getBranch())
+                    .thenApply(listScheduleParserResult -> {
+                        try {
+                            return listScheduleParserResult.get();
+                        } catch (ScheduleParserException e) {
+                            executeSendMessage(sendService.sendException(chatId, e));
+                            throw new RuntimeException();
+                        }
+            }).thenAccept(kits -> {
                 Kit kit = kits.stream().filter(kit1 -> kit1.value().equals(query.data())).findFirst().orElseThrow();
 
                 //todo подумать над оптимизацией - скачивать список групп слишком жирно
-                scheduleParser.getGroups(service.getSettings(chatId).getBranch(), kit.value()).thenAccept(groups -> {
+                scheduleParser.getGroups(service.getSettings(chatId).getBranch(), kit.value()).thenApply(listScheduleParserResult -> {
+                    try {
+                        return listScheduleParserResult.get();
+                    } catch (ScheduleParserException e) {
+                        executeSendMessage(sendService.sendException(chatId, e));
+                        throw new RuntimeException();
+                    }
+                }).thenAccept(groups -> {
                     if (groups.isEmpty()) {
                         executeSendMessage(sendService.sendString(chatId, kit.title() + " недоступен"));
                     } else {
@@ -165,7 +186,14 @@ public class Bot extends TelegramLongPollingBot {
             scheduleParser.getGroups(
                     service.getSettings(chatId).getBranch(),
                     service.getSettings(chatId).getKit()
-            ).thenAccept(groups -> {
+            ).thenApply(listScheduleParserResult -> {
+                try {
+                    return listScheduleParserResult.get();
+                } catch (ScheduleParserException e) {
+                    executeSendMessage(sendService.sendException(chatId, e));
+                    throw new RuntimeException();
+                }
+            }).thenAccept(groups -> {
                 Group group = groups.stream().filter(group1 -> group1.value().equals(query.data())).findFirst().orElseThrow();
                 service.setGroup(chatId, group);
                 executeSendMessage(sendService.sendSettings(chatId, service.getSettings(chatId)));
@@ -245,7 +273,14 @@ public class Bot extends TelegramLongPollingBot {
         return scheduleParser.getGroups(
                 service.getSettings(chatId).getBranch(),
                 service.getSettings(chatId).getKit()
-        ).thenApply(groups -> {
+        ).thenApply(listScheduleParserResult -> {
+            try {
+                return listScheduleParserResult.get();
+            } catch (ScheduleParserException e) {
+                executeSendMessage(sendService.sendException(chatId, e));
+                throw new RuntimeException();
+            }
+        }).thenApply(groups -> {
             List<List<InlineKeyboardButton>> buttons = new LinkedList<>();
             List<InlineKeyboardButton> buttons1 = new LinkedList<>();
             if (page != 0)
