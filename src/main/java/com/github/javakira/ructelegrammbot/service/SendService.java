@@ -7,7 +7,9 @@ import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -92,7 +94,9 @@ public class SendService {
 
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder
-                .append("#Расписание ").append(settings.getGroupTitle()).append(" на ")
+                .append("#Расписание ")
+                .append(settings.isEmployee() ? settings.getEmployeeTitle() : settings.getGroupTitle())
+                .append(" на ")
                 .append(card.date().getDate())
                 .append(".")
                 .append(card.date().getMonth() + 1)
@@ -152,7 +156,20 @@ public class SendService {
         });
     }
 
-    public CompletableFuture<SendMessage> sendBranches(long chatId, Message message) {
+    public SendMessage sendIsEmployeeChoose(long chatId, Message message) {
+        SendMessage sendMessage = sendString(chatId, "Кем будет использоваться бот?");
+        sendMessage.setReplyToMessageId(message.getMessageId());
+        InlineKeyboardMarkup inlineKeyboard = new InlineKeyboardMarkup(
+                List.of(List.of(
+                        InlineKeyboardButton.builder().text("Преподаватель").callbackData("employeeTrue").build(),
+                        InlineKeyboardButton.builder().text("Студент").callbackData("studentTrue").build()
+                ))
+        );
+        sendMessage.setReplyMarkup(inlineKeyboard);
+        return sendMessage;
+    }
+
+    public CompletableFuture<SendMessage> sendBranches(long chatId) {
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(chatId);
         sendMessage.setText("Выбери филиал\n");
@@ -177,11 +194,18 @@ public class SendService {
                     );
                 }
 
-                sendMessage.setReplyToMessageId(message.getMessageId());
                 sendMessage.setReplyMarkup(new InlineKeyboardMarkup(buttons));
                 return sendMessage;
             }
         });
+    }
+
+    public SendMessage sendEmployee(long chatId, InlineKeyboardMarkup keyboardMarkup) {
+        SendMessage sendMessage = new SendMessage();
+        sendMessage.setChatId(chatId);
+        sendMessage.setText("Выбери сотрудника\n");
+        sendMessage.setReplyMarkup(keyboardMarkup);
+        return sendMessage;
     }
 
     public SendMessage sendPairSchedule(long chatId) {
@@ -212,10 +236,15 @@ public class SendService {
     }
 
     public SendMessage sendSettings(long chatId, Settings settings) {
-        return sendString(chatId, "Настройки этого чата:"
+        if (settings.isEmployee())
+            return sendString(chatId, "Настройки этого чата:"
                 + "\n" + "Филиал: " + settings.getBranchTitle()
-                + "\n" + "Набор: " + settings.getKitTitle()
-                + "\n" + "Группа: " + settings.getGroupTitle());
+                + "\n" + "Работник: " + settings.getEmployeeTitle());
+        else
+            return sendString(chatId, "Настройки этого чата:"
+                    + "\n" + "Филиал: " + settings.getBranchTitle()
+                    + "\n" + "Набор: " + settings.getKitTitle()
+                    + "\n" + "Группа: " + settings.getGroupTitle());
     }
 
     public SendMessage sendNotConfigured(long chatId) {

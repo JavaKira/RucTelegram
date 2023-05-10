@@ -1,10 +1,7 @@
 package com.github.javakira.ructelegrammbot;
 
 import com.github.javakira.ructelegrammbot.config.BotConfig;
-import com.github.javakira.ructelegrammbot.model.Branch;
-import com.github.javakira.ructelegrammbot.model.Group;
-import com.github.javakira.ructelegrammbot.model.Kit;
-import com.github.javakira.ructelegrammbot.model.Settings;
+import com.github.javakira.ructelegrammbot.model.*;
 import com.github.javakira.ructelegrammbot.model.statistic.CommandUsageStatistic;
 import com.github.javakira.ructelegrammbot.parser.HtmlScheduleParser;
 import com.github.javakira.ructelegrammbot.parser.ScheduleParser;
@@ -87,7 +84,7 @@ public class Bot extends TelegramLongPollingBot {
             if (!service.isSettingsExist4Chat(chatId)) {
                 executeSendMessage(sendService.sendWarning(chatId, update.getMessage()));
             } else {
-                sendService.sendBranches(chatId, update.getMessage()).thenAccept(this::executeSendMessage);
+                executeSendMessage(sendService.sendIsEmployeeChoose(chatId, update.getMessage()));
             }
         }, "/настроить", "/setup");
 
@@ -122,7 +119,45 @@ public class Bot extends TelegramLongPollingBot {
             clearKeyboard(message);
             Message setupMessage = new Message();
             setupMessage.setMessageId(Integer.valueOf(query.data()));
-            sendService.sendBranches(message.getChatId(), setupMessage).thenAccept(this::executeSendMessage);
+            executeSendMessage(sendService.sendIsEmployeeChoose(message.getChatId(), setupMessage));
+        });
+
+        registerCallbackQueryConsumer("studentTrue", query -> {
+            Message message = query.update().getCallbackQuery().getMessage();
+            service.createSettings(message.getChat());
+            clearKeyboard(message);
+            sendService.sendBranches(message.getChatId()).thenAccept(this::executeSendMessage);
+            Settings settings = service.getSettings(message.getChatId());
+            settings.setEmployee(false);
+            service.saveSettings(settings);
+        });
+
+        registerCallbackQueryConsumer("employeeTrue", query -> {
+            Message message = query.update().getCallbackQuery().getMessage();
+            service.createSettings(message.getChat());
+            clearKeyboard(message);
+            sendService.sendBranches(message.getChatId()).thenAccept(this::executeSendMessage);
+            Settings settings = service.getSettings(message.getChatId());
+            settings.setEmployee(true);
+            service.saveSettings(settings);
+        });
+
+        registerCallbackQueryConsumer("employee", query -> {
+            long chatId = query.update().getCallbackQuery().getMessage().getChatId();
+            clearKeyboard(query.update().getCallbackQuery().getMessage());
+            ScheduleParser scheduleParser = HtmlScheduleParser.instance();
+            scheduleParser.getEmployees(service.getSettings(chatId).getBranch()).thenApply(listScheduleParserResult -> {
+                try {
+                    return listScheduleParserResult.get();
+                } catch (ScheduleParserException e) {
+                    executeSendMessage(sendService.sendException(chatId, e));
+                    throw new RuntimeException();
+                }
+            }).thenAccept(employees -> {
+                Employee employee = employees.stream().filter(employee1 -> employee1.value().equals(query.data())).findFirst().orElseThrow();
+                service.setEmployee(chatId, employee);
+                executeSendMessage(sendService.sendSettings(chatId, service.getSettings(chatId)));
+            });
         });
 
         registerCallbackQueryConsumer("branch", query -> {
@@ -139,7 +174,11 @@ public class Bot extends TelegramLongPollingBot {
             }).thenAccept(branches -> {
                 Branch branch = branches.stream().filter(branch1 -> branch1.value().equals(query.data())).findFirst().orElseThrow();
                 service.setBranch(chatId, branch);
-                sendService.sendKits(chatId, service.getSettings(chatId)).thenAccept(this::executeSendMessage);
+                if (service.getSettings(chatId).isEmployee())
+                    createEmployeeKeyboard(chatId, 0).thenAccept(keyboardMarkup ->
+                            executeSendMessage(sendService.sendEmployee(chatId, keyboardMarkup)));
+                else
+                    sendService.sendKits(chatId, service.getSettings(chatId)).thenAccept(this::executeSendMessage);
             });
         });
 
@@ -229,6 +268,37 @@ public class Bot extends TelegramLongPollingBot {
                 }
             });
         });
+
+        //todo лол а посути можно сделать это всё за одну команду
+        registerCallbackQueryConsumer("employeenext", query -> {
+            long chatId = query.update().getCallbackQuery().getMessage().getChatId();
+            EditMessageReplyMarkup editMessageReplyMarkup = new EditMessageReplyMarkup();
+            editMessageReplyMarkup.setMessageId(query.update().getCallbackQuery().getMessage().getMessageId());
+            editMessageReplyMarkup.setChatId(chatId);
+            createEmployeeKeyboard(chatId, Integer.parseInt(query.data()) + 1).thenAccept(inlineKeyboardMarkup -> {
+                editMessageReplyMarkup.setReplyMarkup(inlineKeyboardMarkup);
+                try {
+                    execute(editMessageReplyMarkup);
+                } catch (TelegramApiException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+        });
+
+        registerCallbackQueryConsumer("employeeprev", query -> {
+            long chatId = query.update().getCallbackQuery().getMessage().getChatId();
+            EditMessageReplyMarkup editMessageReplyMarkup = new EditMessageReplyMarkup();
+            editMessageReplyMarkup.setMessageId(query.update().getCallbackQuery().getMessage().getMessageId());
+            editMessageReplyMarkup.setChatId(chatId);
+            createEmployeeKeyboard(chatId, Integer.parseInt(query.data()) - 1).thenAccept(inlineKeyboardMarkup -> {
+                editMessageReplyMarkup.setReplyMarkup(inlineKeyboardMarkup);
+                try {
+                    execute(editMessageReplyMarkup);
+                } catch (TelegramApiException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+        });
     }
 
     private void registerCommand(String command, Consumer<Update> action) {
@@ -307,6 +377,53 @@ public class Bot extends TelegramLongPollingBot {
                         InlineKeyboardButton.builder()
                                 .text("следующее")
                                 .callbackData("groupnext " + page)
+                                .build()
+                );
+                buttons.add(buttons1);
+            }
+
+            return new InlineKeyboardMarkup(buttons);
+        });
+    }
+
+    private CompletableFuture<InlineKeyboardMarkup> createEmployeeKeyboard(long chatId, int page) {
+        ScheduleParser scheduleParser = HtmlScheduleParser.instance();
+        return scheduleParser.getEmployees(
+                service.getSettings(chatId).getBranch()
+        ).thenApply(listScheduleParserResult -> {
+            try {
+                return listScheduleParserResult.get();
+            } catch (ScheduleParserException e) {
+                executeSendMessage(sendService.sendException(chatId, e));
+                throw new RuntimeException();
+            }
+        }).thenApply(employees -> {
+            List<List<InlineKeyboardButton>> buttons = new LinkedList<>();
+            List<InlineKeyboardButton> buttons1 = new LinkedList<>();
+            if (page != 0)
+                buttons1.add(
+                        InlineKeyboardButton.builder()
+                                .text("предыдущее")
+                                .callbackData("employeeprev " + page)
+                                .build()
+                );
+            for (int i = page * 14; i < Math.min(page * 14 + 14, employees.size()); i++) {
+                Employee employee = employees.get(i);
+                buttons1.add(InlineKeyboardButton.builder()
+                        .text(employee.title())
+                        .callbackData("employee " + employee.value())
+                        .build());
+
+                if (buttons1.size() >= 2) {
+                    buttons.add(buttons1);
+                    buttons1 = new LinkedList<>();
+                }
+            }
+            if ((page * 14 + 14) < employees.size()) {
+                buttons1.add(
+                        InlineKeyboardButton.builder()
+                                .text("следующее")
+                                .callbackData("employeenext " + page)
                                 .build()
                 );
                 buttons.add(buttons1);
