@@ -3,13 +3,10 @@ package com.github.javakira.ructelegrammbot.parser;
 import com.github.javakira.ructelegrammbot.model.*;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import org.jsoup.Connection;
-import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -37,41 +34,9 @@ public class HtmlScheduleParser implements ScheduleParser {
 
     }
 
-    private Document document() throws ServerNotRespondingException {
-        Connection connection = Jsoup.connect(link);
-
-        try {
-            return connection.post();
-        } catch (IOException e) {
-            throw new ServerNotRespondingException();
-        }
-    }
-
-    private Document document(@NonNull Map<String, String> data) throws ServerNotRespondingException {
-        Connection connection = Jsoup.connect(link);
-        connection.data(data);
-
-        try {
-            return connection.post();
-        } catch (IOException e) {
-            throw new ServerNotRespondingException();
-        }
-    }
-
-    private Document documentEmployee(@NonNull Map<String, String> data) throws ServerNotRespondingException {
-        Connection connection = Jsoup.connect(employeeLink);
-        connection.data(data);
-
-        try {
-            return connection.post();
-        } catch (IOException e) {
-            throw new ServerNotRespondingException();
-        }
-    }
-
     private List<Branch> parseBranches() throws Exception {
         Elements elements;
-        Document document = document();
+        Document document = ScheduleRequest.builder().build().document();
         Element employee = document.getElementsByAttribute("name").stream()
                 .filter(element -> element.attr("name").equals("branch"))
                 .toList().get(0);
@@ -84,9 +49,10 @@ public class HtmlScheduleParser implements ScheduleParser {
 
     private List<Kit> parseKits(@NonNull String branch) throws Exception {
         Elements elements;
-        HashMap<String, String> data = new HashMap<>();
-        data.put("branch", branch);
-        Document document = document(data);
+        Document document = ScheduleRequest.builder()
+                .branch(branch)
+                .build()
+                .document();
         Element employee = document.getElementsByAttribute("name").stream()
                 .filter(element -> element.attr("name").equals("year"))
                 .toList().get(0);
@@ -99,10 +65,11 @@ public class HtmlScheduleParser implements ScheduleParser {
 
     private List<Group> parseGroups(@NonNull String branch, @NonNull String kit) throws Exception {
         Elements elements;
-        HashMap<String, String> data = new HashMap<>();
-        data.put("branch", branch);
-        data.put("year", kit);
-        Document document = document(data);
+        Document document = ScheduleRequest.builder()
+                .branch(branch)
+                .kit(kit)
+                .build()
+                .document();
         Element employee = document.getElementsByAttribute("name").stream()
                 .filter(element -> element.attr("name").equals("group"))
                 .toList().get(0);
@@ -115,9 +82,10 @@ public class HtmlScheduleParser implements ScheduleParser {
 
     private List<Employee> parseEmployees(@NonNull String branch) throws Exception {
         Elements elements;
-        HashMap<String, String> data = new HashMap<>();
-        data.put("branch", branch);
-        Document document = documentEmployee(data);
+        Document document = ScheduleRequest.builder()
+                .branch(branch)
+                .build()
+                .documentEmployee();
         Element employee = document.getElementsByAttribute("name").stream()
                 .filter(element -> element.attr("name").equals("employee"))
                 .toList().get(0);
@@ -130,11 +98,12 @@ public class HtmlScheduleParser implements ScheduleParser {
 
     private Cards parseGroupCards(@NonNull String branch, @NonNull String kit, @NonNull String group) throws Exception {
         List<Card> cards = new ArrayList<>();
-        HashMap<String, String> data = new HashMap<>();
-        data.put("branch", branch);
-        data.put("year", kit);
-        data.put("group", group);
-        Document document = document(data);
+        Document document = ScheduleRequest.builder()
+                .branch(branch)
+                .kit(kit)
+                .group(group)
+                .build()
+                .document();
         Elements cardElements = document.getElementsByClass("card");
         for (Element cardElement : cardElements) {
             List<Pair> pairList = new ArrayList<>();
@@ -184,8 +153,11 @@ public class HtmlScheduleParser implements ScheduleParser {
         HashMap<String, String> data = new HashMap<>();
         data.put("branch", branch);
         data.put("employee", employee);
-        Document document = documentEmployee(data);
-
+        Document document = ScheduleRequest.builder()
+                .branch(branch)
+                .employee(employee)
+                .build()
+                .documentEmployee();
         Elements cards = document.getElementsByClass("card");
         for (Element cardElement : cards) {
             List<Pair> pairList = new ArrayList<>();
