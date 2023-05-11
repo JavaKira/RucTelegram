@@ -124,7 +124,6 @@ public class Bot extends TelegramLongPollingBot {
 
         registerCallbackQueryConsumer("studentTrue", query -> {
             Message message = query.update().getCallbackQuery().getMessage();
-            service.createSettings(message.getChat());
             clearKeyboard(message);
             sendService.sendBranches(message.getChatId()).thenAccept(this::executeSendMessage);
             Settings settings = service.getSettings(message.getChatId());
@@ -134,7 +133,6 @@ public class Bot extends TelegramLongPollingBot {
 
         registerCallbackQueryConsumer("employeeTrue", query -> {
             Message message = query.update().getCallbackQuery().getMessage();
-            service.createSettings(message.getChat());
             clearKeyboard(message);
             sendService.sendBranches(message.getChatId()).thenAccept(this::executeSendMessage);
             Settings settings = service.getSettings(message.getChatId());
