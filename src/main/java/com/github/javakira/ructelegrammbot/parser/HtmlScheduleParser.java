@@ -215,7 +215,7 @@ public class HtmlScheduleParser implements ScheduleParser {
     }
 
     @Override
-    public CompletableFuture<ScheduleParserResult<List<Kit>>> getKits(String branch) {
+    public CompletableFuture<ScheduleParserResult<List<Kit>>> getKits(@NonNull String branch) {
         return CompletableFuture.supplyAsync(() -> {
             try {
                 return new ScheduleParserResult<>(parseKits(branch));
@@ -228,7 +228,7 @@ public class HtmlScheduleParser implements ScheduleParser {
     }
 
     @Override
-    public CompletableFuture<ScheduleParserResult<List<Group>>> getGroups(String branch, String kit) {
+    public CompletableFuture<ScheduleParserResult<List<Group>>> getGroups(@NonNull String branch, @NonNull String kit) {
         return CompletableFuture.supplyAsync(() -> {
             try {
                 return new ScheduleParserResult<>(parseGroups(branch, kit));
@@ -241,7 +241,7 @@ public class HtmlScheduleParser implements ScheduleParser {
     }
 
     @Override
-    public CompletableFuture<ScheduleParserResult<List<Employee>>> getEmployees(String branch) {
+    public CompletableFuture<ScheduleParserResult<List<Employee>>> getEmployees(@NonNull String branch) {
         return CompletableFuture.supplyAsync(() -> {
             try {
                 return new ScheduleParserResult<>(parseEmployees(branch));
@@ -254,7 +254,7 @@ public class HtmlScheduleParser implements ScheduleParser {
     }
 
     @Override
-    public CompletableFuture<ScheduleParserResult<Cards>> getGroupCards(String branch, String kit, String group) {
+    public CompletableFuture<ScheduleParserResult<Cards>> getGroupCards(@NonNull String branch, @NonNull String kit, @NonNull String group) {
         return CompletableFuture.supplyAsync(() -> {
             try {
                 return new ScheduleParserResult<>(parseGroupCards(branch, kit, group));
@@ -267,7 +267,7 @@ public class HtmlScheduleParser implements ScheduleParser {
     }
 
     @Override
-    public CompletableFuture<ScheduleParserResult<Cards>> getEmployeeCards(String branch, String employee) {
+    public CompletableFuture<ScheduleParserResult<Cards>> getEmployeeCards(@NonNull String branch, @NonNull String employee) {
         return CompletableFuture.supplyAsync(() -> {
             try {
                 return new ScheduleParserResult<>(parseEmployeeCards(branch, employee));
