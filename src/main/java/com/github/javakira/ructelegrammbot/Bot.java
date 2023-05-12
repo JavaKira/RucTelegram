@@ -16,6 +16,7 @@ import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageReplyMarkup;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
@@ -24,6 +25,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMa
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
+import java.time.LocalDate;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
@@ -138,6 +140,33 @@ public class Bot extends TelegramLongPollingBot {
             Settings settings = service.getSettings(message.getChatId());
             settings.setEmployee(false);
             service.saveSettings(settings);
+        });
+
+        registerCallbackQueryConsumer("schedule", query -> {
+            long chatId = query.update().getCallbackQuery().getMessage().getChatId();
+            Message message = query.update().getCallbackQuery().getMessage();
+            LocalDate localDate = LocalDate.parse(query.data());
+            EditMessageText editMessageText = new EditMessageText();
+            EditMessageReplyMarkup editMessageReplyMarkup = new EditMessageReplyMarkup();
+            editMessageReplyMarkup.setChatId(chatId);
+            editMessageReplyMarkup.setMessageId(message.getMessageId());
+            editMessageText.setMessageId(message.getMessageId());
+            editMessageText.setChatId(chatId);
+            Date date = new Date();
+            date.setYear(localDate.getYear() - 1900);
+            date.setMonth(localDate.getMonthValue());
+            date.setDate(localDate.getDayOfMonth());
+            sendService.sendSchedule(chatId, service.getSettings(chatId), date).thenAccept(sendMessage -> {
+                editMessageText.setText(sendMessage.getText());
+                editMessageReplyMarkup.setReplyMarkup((InlineKeyboardMarkup) sendMessage.getReplyMarkup());
+
+                try {
+                    execute(editMessageText);
+                    execute(editMessageReplyMarkup);
+                } catch (TelegramApiException e) {
+                    executeSendMessage(sendService.sendException(chatId, e));
+                }
+            });
         });
 
         registerCallbackQueryConsumer("employeeTrue", query -> {

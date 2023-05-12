@@ -11,6 +11,8 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMar
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 
+import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
@@ -104,7 +106,7 @@ public class SendService {
             try {
                 Cards cards = result.get();
                 StringBuilder stringBuilder = new StringBuilder();
-                stringBuilder.append(formatCardHeader(date, settings));
+                stringBuilder.append(formatCardHeader(cards.getList().get(0).date(), settings));
                 for (int i = 0; i < cards.getList().size(); i++) {
                     stringBuilder.append(formatCard(cards.getList().get(i)));
                     if (i + 1 < cards.getList().size()) {
@@ -114,7 +116,18 @@ public class SendService {
                     }
                 }
 
-                return sendString(chatId, stringBuilder.toString());
+                SendMessage sendMessage = sendString(chatId, stringBuilder.toString());
+                //todo Избавиться от Date в пользу LocalDate
+                InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
+                LocalDate now = LocalDate.of(1900 + date.getYear(), date.getMonth(), date.getDate());
+                LocalDate weekStart = now.with(DayOfWeek.MONDAY).plusMonths(1);
+                LocalDate weekEnd = weekStart.plusDays(6);
+                inlineKeyboardMarkup.setKeyboard(List.of(
+                        List.of(InlineKeyboardButton.builder().text(weekStart.minusWeeks(1) + " - " + weekEnd.minusWeeks(1)).callbackData("schedule " + now.minusWeeks(1)).build(),
+                                InlineKeyboardButton.builder().text(weekStart.plusWeeks(1) + " - " + weekEnd.plusWeeks(1)).callbackData("schedule " + now.plusWeeks(1)).build())
+                ));
+                sendMessage.setReplyMarkup(inlineKeyboardMarkup);
+                return sendMessage;
             } catch (ScheduleParserException e) {
                 return sendException(chatId, e);
             }
