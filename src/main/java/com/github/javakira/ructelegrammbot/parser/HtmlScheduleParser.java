@@ -96,12 +96,15 @@ public class HtmlScheduleParser implements ScheduleParser {
         return employees;
     }
 
-    private Cards parseGroupCards(@NonNull String branch, @NonNull String kit, @NonNull String group) throws Exception {
+    private Cards parseGroupCards(@NonNull String branch, @NonNull String kit, @NonNull String group, @NonNull Date searchDate) throws Exception {
         List<Card> cards = new ArrayList<>();
         Document document = ScheduleRequest.builder()
                 .branch(branch)
                 .kit(kit)
                 .group(group)
+                .searchDate(true)
+                .dateSearch(searchDate)
+                .schedulerDate(new Date())
                 .build()
                 .document();
         Elements cardElements = document.getElementsByClass("card");
@@ -150,9 +153,6 @@ public class HtmlScheduleParser implements ScheduleParser {
 
     private Cards parseEmployeeCards(@NonNull String branch, @NonNull String employee) throws Exception {
         List<Card> cardList = new ArrayList<>();
-        HashMap<String, String> data = new HashMap<>();
-        data.put("branch", branch);
-        data.put("employee", employee);
         Document document = ScheduleRequest.builder()
                 .branch(branch)
                 .employee(employee)
@@ -254,10 +254,10 @@ public class HtmlScheduleParser implements ScheduleParser {
     }
 
     @Override
-    public CompletableFuture<ScheduleParserResult<Cards>> getGroupCards(@NonNull String branch, @NonNull String kit, @NonNull String group) {
+    public CompletableFuture<ScheduleParserResult<Cards>> getGroupCards(@NonNull String branch, @NonNull String kit, @NonNull String group, @NonNull Date searchDate) {
         return CompletableFuture.supplyAsync(() -> {
             try {
-                return new ScheduleParserResult<>(parseGroupCards(branch, kit, group));
+                return new ScheduleParserResult<>(parseGroupCards(branch, kit, group, searchDate));
             } catch (ServerNotRespondingException e) {
                 return new ScheduleParserResult<>(e);
             } catch (Exception e) {

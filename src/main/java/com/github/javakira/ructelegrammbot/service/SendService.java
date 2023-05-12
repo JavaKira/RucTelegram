@@ -20,7 +20,7 @@ import java.util.concurrent.atomic.AtomicReference;
 public class SendService {
     public CompletableFuture<SendMessage> scheduleToday(long chatId, Settings settings) {
         AtomicReference<SendMessage> returnValue = new AtomicReference<>();
-        return schedule(chatId, settings).thenApply(listScheduleParserResult -> {
+        return schedule(chatId, settings, new Date()).thenApply(listScheduleParserResult -> {
             try {
                 return listScheduleParserResult.get();
             } catch (ScheduleParserException e) {
@@ -45,7 +45,9 @@ public class SendService {
 
     public CompletableFuture<SendMessage> scheduleTomorrow(long chatId, Settings settings) {
         AtomicReference<SendMessage> returnValue = new AtomicReference<>();
-        return schedule(chatId, settings).thenApply(listScheduleParserResult -> {
+        Date date = new Date();
+        date.setDate(date.getDate() + 1);
+        return schedule(chatId, settings, date).thenApply(listScheduleParserResult -> {
             try {
                 return listScheduleParserResult.get();
             } catch (ScheduleParserException e) {
@@ -75,7 +77,7 @@ public class SendService {
         });
     }
 
-    private CompletableFuture<ScheduleParserResult<Cards>> schedule(long chatId, Settings settings) {
+    private CompletableFuture<ScheduleParserResult<Cards>> schedule(long chatId, Settings settings, Date date) {
         SendMessage message = new SendMessage();
         message.setChatId(chatId);
         ScheduleParser parser = HtmlScheduleParser.instance();
@@ -83,7 +85,7 @@ public class SendService {
         if (settings.isEmployee())
             future = parser.getEmployeeCards(settings.getBranch(), settings.getEmployeeKey());
         else
-            future = parser.getGroupCards(settings.getBranch(), settings.getKit(), settings.getGroupKey());
+            future = parser.getGroupCards(settings.getBranch(), settings.getKit(), settings.getGroupKey(), date);
 
         return future;
     }
