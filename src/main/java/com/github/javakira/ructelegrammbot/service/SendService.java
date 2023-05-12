@@ -35,7 +35,7 @@ public class SendService {
                 if (card.isPresent()) {
                     returnValue.set(sendCard(chatId, card.get(), settings));
                 } else {
-                    returnValue.set(sendString(chatId, "На сегодня расписания для " + settings.getGroupTitle() + " нет."));
+                    returnValue.set(sendString(chatId, "На сегодня расписания для " + (settings.isEmployee() ? settings.getEmployeeTitle() : settings.getGroupTitle()) + " нет."));
                 }
 
                 return returnValue.get();
@@ -63,7 +63,7 @@ public class SendService {
                     Calendar calendar = new GregorianCalendar();
                     calendar.add(Calendar.DAY_OF_MONTH, 1);
                     StringBuilder stringBuilder = new StringBuilder();
-                    stringBuilder.append("На завтра расписания для ").append(settings.getGroupTitle()).append(" нет.");
+                    stringBuilder.append("На завтра расписания для ").append(settings.isEmployee() ? settings.getEmployeeTitle() : settings.getGroupTitle()).append(" нет.");
                     if (calendar.get(Calendar.DAY_OF_WEEK) == Calendar.MONDAY)
                         stringBuilder.append("\\n\\nПохоже на то, что вы смотрите расписание на понедельник. Оно обычно появляется только в понедельник в 0:00");
 

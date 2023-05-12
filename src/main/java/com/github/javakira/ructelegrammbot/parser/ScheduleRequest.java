@@ -8,6 +8,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
 import java.io.IOException;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -22,6 +23,10 @@ public class ScheduleRequest {
     private String employee;
     private String kit;
     private String group;
+
+    private boolean searchDate;
+    private Date schedulerDate;
+    private Date dateSearch;
 
     private Map<String, String> data(boolean isEmployee) {
         Map<String, String> result = new HashMap<>();
@@ -43,7 +48,21 @@ public class ScheduleRequest {
                 result.put("group", group);
         }
 
+        if (searchDate) {
+            result.put("search-date", "search-date");
+            result.put("scheduler-date", format(schedulerDate));
+            result.put("date-search", format(dateSearch));
+        }
+
         return result;
+    }
+
+    private String format(Date date) {
+        int month = date.getMonth() + 1;
+        return
+                (1900 + date.getYear()) + "-" +
+                (month < 10 ? "0" + month : month) + "-" +
+                (date.getDate() < 10 ? "0" + date.getDate() : date.getDate());
     }
 
     Document document() throws ServerNotRespondingException {
