@@ -106,6 +106,15 @@ public class Bot extends TelegramLongPollingBot {
                 executeSendMessage(sendService.sendNotConfigured(chatId));
         }, "/завтра", "/tomorrow");
 
+        registerCommands(update -> {
+            long chatId = update.getMessage().getChatId();
+            boolean checked = service.checkSettings(chatId);
+            if (checked)
+                sendService.sendSchedule(chatId, service.getSettings(chatId), new Date()).thenAccept(this::executeSendMessage);
+            else
+                executeSendMessage(sendService.sendNotConfigured(chatId));
+        }, "/расписание", "/schedule");
+
         registerCommand("/pairschedule", update -> {
             long chatId = update.getMessage().getChatId();
             executeSendMessage(sendService.sendPairSchedule(chatId));

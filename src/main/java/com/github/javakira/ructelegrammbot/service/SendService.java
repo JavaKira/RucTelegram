@@ -90,22 +90,39 @@ public class SendService {
         return future;
     }
 
-    public SendMessage sendCard(long chatId, Card card, Settings settings) {
+    public CompletableFuture<SendMessage> sendSchedule(long chatId, Settings settings, Date date) {
         SendMessage message = new SendMessage();
         message.setChatId(chatId);
+        ScheduleParser parser = HtmlScheduleParser.instance();
+        CompletableFuture<ScheduleParserResult<Cards>> future;
+        if (settings.isEmployee())
+            future = parser.getEmployeeCards(settings.getBranch(), settings.getEmployeeKey());
+        else
+            future = parser.getGroupCards(settings.getBranch(), settings.getKit(), settings.getGroupKey(), date);
 
+        return future.thenApply(result -> {
+            try {
+                Cards cards = result.get();
+                StringBuilder stringBuilder = new StringBuilder();
+                stringBuilder.append(formatCardHeader(date, settings));
+                for (int i = 0; i < cards.getList().size(); i++) {
+                    stringBuilder.append(formatCard(cards.getList().get(i)));
+                    if (i + 1 < cards.getList().size()) {
+                        stringBuilder.append("\n");
+                        stringBuilder.append(formatShortCardHeader(cards.getList().get(i + 1).date()));
+                        stringBuilder.append("\n");
+                    }
+                }
+
+                return sendString(chatId, stringBuilder.toString());
+            } catch (ScheduleParserException e) {
+                return sendException(chatId, e);
+            }
+        });
+    }
+
+    public String formatCard(Card card) {
         StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder
-                .append("#Расписание ")
-                .append(settings.isEmployee() ? settings.getEmployeeTitle() : settings.getGroupTitle())
-                .append(" на ")
-                .append(card.date().getDate())
-                .append(".")
-                .append(card.date().getMonth() + 1)
-                .append(".")
-                .append(card.date().getYear() + 1900)
-                .append(" (").append(formatDayOfWeek(card.date())).append(")")
-                .append("\n");
         for (Pair pair : card.pairList()) {
             stringBuilder.append("\n");
             stringBuilder.append(pair.getIndex() + 1).append(". ").append(pair.getName()).append(" ").append("\n");
@@ -114,8 +131,32 @@ public class SendService {
             stringBuilder.append(pair.getType()).append("\n");
         }
 
-        message.setText(stringBuilder.toString());
-        return message;
+        return stringBuilder.toString();
+    }
+
+    public String formatShortCardHeader(Date date) {
+        return date.getDate() +
+                "." +
+                (date.getMonth() + 1) +
+                "." +
+                (date.getYear() + 1900) +
+                " (" + formatDayOfWeek(date) + ")";
+    }
+
+    public String formatCardHeader(Date date, Settings settings) {
+        return "#Расписание " +
+                (settings.isEmployee() ? settings.getEmployeeTitle() : settings.getGroupTitle()) +
+                " на " +
+                date.getDate() +
+                "." +
+                (date.getMonth() + 1) +
+                "." +
+                (date.getYear() + 1900) +
+                " (" + formatDayOfWeek(date) + ")";
+    }
+
+    public SendMessage sendCard(long chatId, Card card, Settings settings) {
+        return sendString(chatId,formatCardHeader(card.date(), settings) + "\n" + formatCard(card));
     }
 
     private String formatDayOfWeek(Date date) {
