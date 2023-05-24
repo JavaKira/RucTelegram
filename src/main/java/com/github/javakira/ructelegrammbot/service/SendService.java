@@ -2,9 +2,13 @@ package com.github.javakira.ructelegrammbot.service;
 
 import com.github.javakira.ructelegrammbot.model.*;
 import com.github.javakira.ructelegrammbot.parser.*;
+import com.github.javakira.ructelegrammbot.statistic.ExceptionStatistic;
+import com.github.javakira.ructelegrammbot.statistic.StatisticService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
@@ -20,6 +24,13 @@ import java.util.concurrent.atomic.AtomicReference;
 @Service
 @Slf4j
 public class SendService {
+    private StatisticService statisticService;
+
+    @Autowired
+    public SendService(StatisticService statisticService) {
+        this.statisticService = statisticService;
+    }
+
     public CompletableFuture<SendMessage> scheduleToday(long chatId, Settings settings) {
         AtomicReference<SendMessage> returnValue = new AtomicReference<>();
         return schedule(chatId, settings, new Date()).thenApply(listScheduleParserResult -> {
@@ -312,6 +323,19 @@ public class SendService {
     }
 
     public SendMessage sendException(long chatId, Exception e) {
+        StringBuilder statisticStackTraceBuilder = new StringBuilder();
+        StackTraceElement[] stackTrace = e.getStackTrace();
+        for (int i = 0; i < 1; i++) {
+            StackTraceElement str = stackTrace[i];
+            statisticStackTraceBuilder.append(str.toString()).append("\n");
+        }
+
+        statisticService.add(ExceptionStatistic.builder()
+                .head(e.toString())
+                .stacktrace(statisticStackTraceBuilder.toString())
+                .date(new Date())
+                .build());
+
         if (e instanceof ServerNotRespondingException)
             return sendServerNotResponding(chatId);
 
@@ -324,6 +348,10 @@ public class SendService {
         stringBuilder.append("\n\n@Javapedik уже скорее всего получил пинка под зад, но вы можете добавить ещё, чтобы он ускорился");
         return sendString(chatId,
                 stringBuilder.toString());
+    }
+
+    public SendMessage sendStart(long chatId) {
+        return sendString(chatId, "Чтобы начать, настрой бота — /setup@RucSchedule_bot");
     }
 
     public SendMessage sendString(long chatId, String string) {

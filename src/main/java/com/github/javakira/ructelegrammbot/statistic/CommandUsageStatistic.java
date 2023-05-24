@@ -1,4 +1,4 @@
-package com.github.javakira.ructelegrammbot.model.statistic;
+package com.github.javakira.ructelegrammbot.statistic;
 
 import com.github.javakira.ructelegrammbot.model.Settings;
 import jakarta.persistence.Entity;

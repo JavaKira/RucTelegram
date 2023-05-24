@@ -2,12 +2,13 @@ package com.github.javakira.ructelegrammbot;
 
 import com.github.javakira.ructelegrammbot.config.BotConfig;
 import com.github.javakira.ructelegrammbot.model.*;
-import com.github.javakira.ructelegrammbot.model.statistic.CommandUsageStatistic;
+import com.github.javakira.ructelegrammbot.statistic.CallbackUsageStatistic;
+import com.github.javakira.ructelegrammbot.statistic.CommandUsageStatistic;
 import com.github.javakira.ructelegrammbot.parser.HtmlScheduleParser;
 import com.github.javakira.ructelegrammbot.parser.ScheduleParser;
 import com.github.javakira.ructelegrammbot.parser.ScheduleParserException;
-import com.github.javakira.ructelegrammbot.parser.ScheduleParserResult;
 import com.github.javakira.ructelegrammbot.service.*;
+import com.github.javakira.ructelegrammbot.statistic.StatisticService;
 import jakarta.annotation.PostConstruct;
 import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
@@ -20,7 +21,6 @@ import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageTe
 import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
@@ -44,7 +44,7 @@ public class Bot extends TelegramLongPollingBot {
     @Autowired
     private SendService sendService;
     @Autowired
-    private CommandUsageStatisticService commandUsageStatisticService;
+    private StatisticService statisticService;
 
     public Bot(BotConfig config) {
         this.config = config;
@@ -120,6 +120,11 @@ public class Bot extends TelegramLongPollingBot {
         registerCommand("/pairschedule", update -> {
             long chatId = update.getMessage().getChatId();
             executeSendMessage(sendService.sendPairSchedule(chatId));
+        });
+
+        registerCommand("/start", update -> {
+            long chatId = update.getMessage().getChatId();
+            executeSendMessage(sendService.sendStart(chatId));
         });
     }
 
@@ -340,7 +345,7 @@ public class Bot extends TelegramLongPollingBot {
     private void registerCommand(String command, Consumer<Update> action) {
         commandService.putCommand(command, update -> {
             Chat chat = update.getMessage().getChat();
-            commandUsageStatisticService.add(CommandUsageStatistic.builder()
+            statisticService.add(CommandUsageStatistic.builder()
                             .chatFirstName(chat.getFirstName())
                             .chatLastName(chat.getLastName())
                             .chatUsername(chat.getUserName())
@@ -360,7 +365,21 @@ public class Bot extends TelegramLongPollingBot {
     }
 
     private void registerCallbackQueryConsumer(String command, Consumer<CallbackQueryService.CallbackQuery> action) {
-        callbackQueryService.putCallbackQueryConsumer(command, action);
+        callbackQueryService.putCallbackQueryConsumer(command, callbackQuery -> {
+            Chat chat = callbackQuery.update().getCallbackQuery().getMessage().getChat();
+            statisticService.add(CallbackUsageStatistic.builder()
+                    .chatFirstName(chat.getFirstName())
+                    .chatLastName(chat.getLastName())
+                    .chatUsername(chat.getUserName())
+                    .chatTitle(chat.getTitle())
+                    .callback(command)
+                    .data(callbackQuery.data())
+                    .date(new Date())
+                    .setSettings(service.getSettings(chat.getId()))
+                    .userUsername(callbackQuery.update().getCallbackQuery().getMessage().getFrom().getUserName())
+                    .build());
+            action.accept(callbackQuery);
+        });
     }
 
     private void clearKeyboard(Message message) {

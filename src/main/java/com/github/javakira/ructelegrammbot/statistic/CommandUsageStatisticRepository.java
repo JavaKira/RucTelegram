@@ -1,6 +1,5 @@
-package com.github.javakira.ructelegrammbot.repository;
+package com.github.javakira.ructelegrammbot.statistic;
 
-import com.github.javakira.ructelegrammbot.model.statistic.CommandUsageStatistic;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
