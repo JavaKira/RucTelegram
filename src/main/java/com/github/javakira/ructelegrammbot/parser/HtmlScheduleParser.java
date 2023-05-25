@@ -1,6 +1,5 @@
 package com.github.javakira.ructelegrammbot.parser;
 
-import com.github.javakira.ructelegrammbot.model.*;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.nodes.Document;
@@ -10,9 +9,6 @@ import org.jsoup.select.Elements;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 

@@ -1,6 +1,5 @@
 package com.github.javakira.ructelegrammbot.service;
 
-import com.github.javakira.ructelegrammbot.model.*;
 import com.github.javakira.ructelegrammbot.parser.*;
 import com.github.javakira.ructelegrammbot.settings.Settings;
 import com.github.javakira.ructelegrammbot.statistic.ExceptionStatistic;

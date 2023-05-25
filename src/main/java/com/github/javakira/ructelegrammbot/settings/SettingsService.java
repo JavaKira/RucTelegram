@@ -1,6 +1,9 @@
 package com.github.javakira.ructelegrammbot.settings;
 
-import com.github.javakira.ructelegrammbot.model.*;
+import com.github.javakira.ructelegrammbot.parser.Branch;
+import com.github.javakira.ructelegrammbot.parser.Employee;
+import com.github.javakira.ructelegrammbot.parser.Group;
+import com.github.javakira.ructelegrammbot.parser.Kit;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.objects.Chat;

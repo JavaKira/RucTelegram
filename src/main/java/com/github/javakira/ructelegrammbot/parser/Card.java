@@ -1,4 +1,4 @@
-package com.github.javakira.ructelegrammbot.model;
+package com.github.javakira.ructelegrammbot.parser;
 
 import java.util.Date;
 import java.util.List;

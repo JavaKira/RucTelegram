@@ -1,4 +1,4 @@
-package com.github.javakira.ructelegrammbot.model;
+package com.github.javakira.ructelegrammbot.parser;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

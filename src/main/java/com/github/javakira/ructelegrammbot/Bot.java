@@ -1,13 +1,11 @@
 package com.github.javakira.ructelegrammbot;
 
 import com.github.javakira.ructelegrammbot.config.BotConfig;
-import com.github.javakira.ructelegrammbot.model.*;
-import com.github.javakira.ructelegrammbot.parser.ParserService;
+import com.github.javakira.ructelegrammbot.parser.*;
 import com.github.javakira.ructelegrammbot.settings.Settings;
 import com.github.javakira.ructelegrammbot.settings.SettingsService;
 import com.github.javakira.ructelegrammbot.statistic.CallbackUsageStatistic;
 import com.github.javakira.ructelegrammbot.statistic.CommandUsageStatistic;
-import com.github.javakira.ructelegrammbot.parser.ScheduleParserException;
 import com.github.javakira.ructelegrammbot.service.*;
 import com.github.javakira.ructelegrammbot.statistic.StatisticService;
 import jakarta.annotation.PostConstruct;

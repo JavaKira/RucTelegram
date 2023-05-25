@@ -1,6 +1,5 @@
 package com.github.javakira.ructelegrammbot.parser;
 
-import com.github.javakira.ructelegrammbot.model.*;
 import lombok.NonNull;
 import org.springframework.stereotype.Service;
 

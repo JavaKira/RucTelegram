@@ -1,4 +1,4 @@
-package com.github.javakira.ructelegrammbot.model;
+package com.github.javakira.ructelegrammbot.parser;
 
 public record Branch(String title, String value) {
 
