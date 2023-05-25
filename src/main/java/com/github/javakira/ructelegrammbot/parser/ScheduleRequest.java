@@ -18,7 +18,7 @@ import static com.github.javakira.ructelegrammbot.parser.ScheduleParser.link;
 @Data
 @Builder
 @Slf4j
-public class ScheduleRequest {
+class ScheduleRequest {
     private String branch;
     private String employee;
     private String kit;

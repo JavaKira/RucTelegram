@@ -2,10 +2,9 @@ package com.github.javakira.ructelegrammbot;
 
 import com.github.javakira.ructelegrammbot.config.BotConfig;
 import com.github.javakira.ructelegrammbot.model.*;
+import com.github.javakira.ructelegrammbot.parser.ParserService;
 import com.github.javakira.ructelegrammbot.statistic.CallbackUsageStatistic;
 import com.github.javakira.ructelegrammbot.statistic.CommandUsageStatistic;
-import com.github.javakira.ructelegrammbot.parser.HtmlScheduleParser;
-import com.github.javakira.ructelegrammbot.parser.ScheduleParser;
 import com.github.javakira.ructelegrammbot.parser.ScheduleParserException;
 import com.github.javakira.ructelegrammbot.service.*;
 import com.github.javakira.ructelegrammbot.statistic.StatisticService;
@@ -45,6 +44,8 @@ public class Bot extends TelegramLongPollingBot {
     private SendService sendService;
     @Autowired
     private StatisticService statisticService;
+    @Autowired
+    private ParserService parserService;
 
     public Bot(BotConfig config) {
         this.config = config;
@@ -186,8 +187,7 @@ public class Bot extends TelegramLongPollingBot {
         registerCallbackQueryConsumer("employee", query -> {
             long chatId = query.update().getCallbackQuery().getMessage().getChatId();
             clearKeyboard(query.update().getCallbackQuery().getMessage());
-            ScheduleParser scheduleParser = HtmlScheduleParser.instance();
-            scheduleParser.getEmployees(service.getSettings(chatId).getBranch()).thenApply(listScheduleParserResult -> {
+            parserService.getEmployees(service.getSettings(chatId).getBranch()).thenApply(listScheduleParserResult -> {
                 try {
                     return listScheduleParserResult.get();
                 } catch (ScheduleParserException e) {
@@ -204,8 +204,7 @@ public class Bot extends TelegramLongPollingBot {
         registerCallbackQueryConsumer("branch", query -> {
             long chatId = query.update().getCallbackQuery().getMessage().getChatId();
             clearKeyboard(query.update().getCallbackQuery().getMessage());
-            ScheduleParser scheduleParser = HtmlScheduleParser.instance();
-            scheduleParser.getBranches().thenApply(listScheduleParserResult -> {
+            parserService.getBranches().thenApply(listScheduleParserResult -> {
                 try {
                     return listScheduleParserResult.get();
                 } catch (ScheduleParserException e) {
@@ -225,8 +224,7 @@ public class Bot extends TelegramLongPollingBot {
 
         registerCallbackQueryConsumer("kit", query -> {
             long chatId = query.update().getCallbackQuery().getMessage().getChatId();
-            ScheduleParser scheduleParser = HtmlScheduleParser.instance();
-            scheduleParser.getKits(service.getSettings(chatId).getBranch())
+            parserService.getKits(service.getSettings(chatId).getBranch())
                     .thenApply(listScheduleParserResult -> {
                         try {
                             return listScheduleParserResult.get();
@@ -238,7 +236,7 @@ public class Bot extends TelegramLongPollingBot {
                 Kit kit = kits.stream().filter(kit1 -> kit1.value().equals(query.data())).findFirst().orElseThrow();
 
                 //todo подумать над оптимизацией - скачивать список групп слишком жирно
-                scheduleParser.getGroups(service.getSettings(chatId).getBranch(), kit.value()).thenApply(listScheduleParserResult -> {
+                parserService.getGroups(service.getSettings(chatId).getBranch(), kit.value()).thenApply(listScheduleParserResult -> {
                     try {
                         return listScheduleParserResult.get();
                     } catch (ScheduleParserException e) {
@@ -262,8 +260,7 @@ public class Bot extends TelegramLongPollingBot {
         registerCallbackQueryConsumer("group", query -> {
             long chatId = query.update().getCallbackQuery().getMessage().getChatId();
             clearKeyboard(query.update().getCallbackQuery().getMessage());
-            ScheduleParser scheduleParser = HtmlScheduleParser.instance();
-            scheduleParser.getGroups(
+            parserService.getGroups(
                     service.getSettings(chatId).getBranch(),
                     service.getSettings(chatId).getKit()
             ).thenApply(listScheduleParserResult -> {
@@ -394,8 +391,7 @@ public class Bot extends TelegramLongPollingBot {
     }
 
     private CompletableFuture<InlineKeyboardMarkup> createGroupsKeyboard(long chatId, int page) {
-        ScheduleParser scheduleParser = HtmlScheduleParser.instance();
-        return scheduleParser.getGroups(
+        return parserService.getGroups(
                 service.getSettings(chatId).getBranch(),
                 service.getSettings(chatId).getKit()
         ).thenApply(listScheduleParserResult -> {
@@ -442,8 +438,7 @@ public class Bot extends TelegramLongPollingBot {
     }
 
     private CompletableFuture<InlineKeyboardMarkup> createEmployeeKeyboard(long chatId, int page) {
-        ScheduleParser scheduleParser = HtmlScheduleParser.instance();
-        return scheduleParser.getEmployees(
+        return parserService.getEmployees(
                 service.getSettings(chatId).getBranch()
         ).thenApply(listScheduleParserResult -> {
             try {

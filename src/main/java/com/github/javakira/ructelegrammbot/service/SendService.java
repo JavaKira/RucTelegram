@@ -8,12 +8,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -25,10 +22,12 @@ import java.util.concurrent.atomic.AtomicReference;
 @Slf4j
 public class SendService {
     private StatisticService statisticService;
+    private ParserService parserService;
 
     @Autowired
-    public SendService(StatisticService statisticService) {
+    public SendService(StatisticService statisticService, ParserService parserService) {
         this.statisticService = statisticService;
+        this.parserService = parserService;
     }
 
     public CompletableFuture<SendMessage> scheduleToday(long chatId, Settings settings) {
@@ -93,12 +92,11 @@ public class SendService {
     private CompletableFuture<ScheduleParserResult<Cards>> schedule(long chatId, Settings settings, Date date) {
         SendMessage message = new SendMessage();
         message.setChatId(chatId);
-        ScheduleParser parser = HtmlScheduleParser.instance();
         CompletableFuture<ScheduleParserResult<Cards>> future;
         if (settings.isEmployee())
-            future = parser.getEmployeeCards(settings.getBranch(), settings.getEmployeeKey());
+            future = parserService.getEmployeeCards(settings.getBranch(), settings.getEmployeeKey());
         else
-            future = parser.getGroupCards(settings.getBranch(), settings.getKit(), settings.getGroupKey(), date);
+            future = parserService.getGroupCards(settings.getBranch(), settings.getKit(), settings.getGroupKey(), date);
 
         return future;
     }
@@ -106,12 +104,11 @@ public class SendService {
     public CompletableFuture<SendMessage> sendSchedule(long chatId, Settings settings, Date date) {
         SendMessage message = new SendMessage();
         message.setChatId(chatId);
-        ScheduleParser parser = HtmlScheduleParser.instance();
         CompletableFuture<ScheduleParserResult<Cards>> future;
         if (settings.isEmployee())
-            future = parser.getEmployeeCards(settings.getBranch(), settings.getEmployeeKey());
+            future = parserService.getEmployeeCards(settings.getBranch(), settings.getEmployeeKey());
         else
-            future = parser.getGroupCards(settings.getBranch(), settings.getKit(), settings.getGroupKey(), date);
+            future = parserService.getGroupCards(settings.getBranch(), settings.getKit(), settings.getGroupKey(), date);
 
         return future.thenApply(result -> {
             try {
@@ -202,8 +199,7 @@ public class SendService {
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(chatId);
         sendMessage.setText("Выбери набор\n");
-        ScheduleParser scheduleParser = HtmlScheduleParser.instance();
-        return scheduleParser.getKits(settings.getBranch()).thenApply(result -> {
+        return parserService.getKits(settings.getBranch()).thenApply(result -> {
             try {
                 List<Kit> kits = result.get();
                 List<List<InlineKeyboardButton>> buttons = new LinkedList<>();
@@ -240,8 +236,7 @@ public class SendService {
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(chatId);
         sendMessage.setText("Выбери филиал\n");
-        ScheduleParser scheduleParser = HtmlScheduleParser.instance();
-        return scheduleParser.getBranches().thenApply(listScheduleParserResult -> {
+        return parserService.getBranches().thenApply(listScheduleParserResult -> {
             try {
                 return listScheduleParserResult.get();
             } catch (ScheduleParserException e) {

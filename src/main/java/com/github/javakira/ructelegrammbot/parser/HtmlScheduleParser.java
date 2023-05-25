@@ -17,24 +17,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Slf4j
-public class HtmlScheduleParser implements ScheduleParser {
-    private static HtmlScheduleParser instance;
-
-    private final ExecutorService executor
-            = Executors.newFixedThreadPool(2);
-
-    public static ScheduleParser instance() {
-        if (instance == null)
-            instance = new HtmlScheduleParser();
-
-        return instance;
-    }
-
-    private HtmlScheduleParser() {
-
-    }
-
-    private List<Branch> parseBranches() throws Exception {
+class HtmlScheduleParser implements ScheduleParser {
+    public List<Branch> parseBranches() throws Exception {
         Elements elements;
         Document document = ScheduleRequest.builder().build().document();
         Element employee = document.getElementsByAttribute("name").stream()
@@ -47,7 +31,7 @@ public class HtmlScheduleParser implements ScheduleParser {
         return branchList;
     }
 
-    private List<Kit> parseKits(@NonNull String branch) throws Exception {
+    public List<Kit> parseKits(@NonNull String branch) throws Exception {
         Elements elements;
         Document document = ScheduleRequest.builder()
                 .branch(branch)
@@ -63,7 +47,7 @@ public class HtmlScheduleParser implements ScheduleParser {
         return kits;
     }
 
-    private List<Group> parseGroups(@NonNull String branch, @NonNull String kit) throws Exception {
+    public List<Group> parseGroups(@NonNull String branch, @NonNull String kit) throws Exception {
         Elements elements;
         Document document = ScheduleRequest.builder()
                 .branch(branch)
@@ -80,7 +64,7 @@ public class HtmlScheduleParser implements ScheduleParser {
         return groups;
     }
 
-    private List<Employee> parseEmployees(@NonNull String branch) throws Exception {
+    public List<Employee> parseEmployees(@NonNull String branch) throws Exception {
         Elements elements;
         Document document = ScheduleRequest.builder()
                 .branch(branch)
@@ -96,7 +80,7 @@ public class HtmlScheduleParser implements ScheduleParser {
         return employees;
     }
 
-    private Cards parseGroupCards(@NonNull String branch, @NonNull String kit, @NonNull String group, @NonNull Date searchDate) throws Exception {
+    public Cards parseGroupCards(@NonNull String branch, @NonNull String kit, @NonNull String group, @NonNull Date searchDate) throws Exception {
         List<Card> cards = new ArrayList<>();
         Document document = ScheduleRequest.builder()
                 .branch(branch)
@@ -151,7 +135,7 @@ public class HtmlScheduleParser implements ScheduleParser {
 
     }
 
-    private Cards parseEmployeeCards(@NonNull String branch, @NonNull String employee) throws Exception {
+    public Cards parseEmployeeCards(@NonNull String branch, @NonNull String employee) throws Exception {
         List<Card> cardList = new ArrayList<>();
         Document document = ScheduleRequest.builder()
                 .branch(branch)
@@ -199,83 +183,5 @@ public class HtmlScheduleParser implements ScheduleParser {
         }
 
         return new Cards(cardList);
-    }
-
-    @Override
-    public CompletableFuture<ScheduleParserResult<List<Branch>>> getBranches() {
-        return CompletableFuture.supplyAsync(() -> {
-            try {
-                return new ScheduleParserResult<>(parseBranches());
-            } catch (ServerNotRespondingException e) {
-                return new ScheduleParserResult<>(e);
-            } catch (Exception e) {
-                return new ScheduleParserResult<>(new ScheduleParserException(e));
-            }
-        }, executor);
-    }
-
-    @Override
-    public CompletableFuture<ScheduleParserResult<List<Kit>>> getKits(@NonNull String branch) {
-        return CompletableFuture.supplyAsync(() -> {
-            try {
-                return new ScheduleParserResult<>(parseKits(branch));
-            } catch (ServerNotRespondingException e) {
-                return new ScheduleParserResult<>(e);
-            } catch (Exception e) {
-                return new ScheduleParserResult<>(new ScheduleParserException(e));
-            }
-        }, executor);
-    }
-
-    @Override
-    public CompletableFuture<ScheduleParserResult<List<Group>>> getGroups(@NonNull String branch, @NonNull String kit) {
-        return CompletableFuture.supplyAsync(() -> {
-            try {
-                return new ScheduleParserResult<>(parseGroups(branch, kit));
-            } catch (ServerNotRespondingException e) {
-                return new ScheduleParserResult<>(e);
-            } catch (Exception e) {
-                return new ScheduleParserResult<>(new ScheduleParserException(e));
-            }
-        }, executor);
-    }
-
-    @Override
-    public CompletableFuture<ScheduleParserResult<List<Employee>>> getEmployees(@NonNull String branch) {
-        return CompletableFuture.supplyAsync(() -> {
-            try {
-                return new ScheduleParserResult<>(parseEmployees(branch));
-            } catch (ServerNotRespondingException e) {
-                return new ScheduleParserResult<>(e);
-            } catch (Exception e) {
-                return new ScheduleParserResult<>(new ScheduleParserException(e));
-            }
-        }, executor);
-    }
-
-    @Override
-    public CompletableFuture<ScheduleParserResult<Cards>> getGroupCards(@NonNull String branch, @NonNull String kit, @NonNull String group, @NonNull Date searchDate) {
-        return CompletableFuture.supplyAsync(() -> {
-            try {
-                return new ScheduleParserResult<>(parseGroupCards(branch, kit, group, searchDate));
-            } catch (ServerNotRespondingException e) {
-                return new ScheduleParserResult<>(e);
-            } catch (Exception e) {
-                return new ScheduleParserResult<>(new ScheduleParserException(e));
-            }
-        }, executor);
-    }
-
-    @Override
-    public CompletableFuture<ScheduleParserResult<Cards>> getEmployeeCards(@NonNull String branch, @NonNull String employee) {
-        return CompletableFuture.supplyAsync(() -> {
-            try {
-                return new ScheduleParserResult<>(parseEmployeeCards(branch, employee));
-            } catch (ServerNotRespondingException e) {
-                return new ScheduleParserResult<>(e);
-            } catch (Exception e) {
-                return new ScheduleParserResult<>(new ScheduleParserException(e));
-            }
-        });
     }
 }
