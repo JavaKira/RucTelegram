@@ -1,6 +1,5 @@
 package com.github.javakira.ructelegrammbot.statistic;
 
-import com.github.javakira.ructelegrammbot.model.Settings;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;

@@ -1,4 +1,4 @@
-package com.github.javakira.ructelegrammbot.model;
+package com.github.javakira.ructelegrammbot.settings;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
