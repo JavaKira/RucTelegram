@@ -113,7 +113,7 @@ public class HtmlScheduleParser implements ScheduleParser {
                 String[] split1 = split[2].split(",");
 
                 pairList.add(new Pair(
-                        pairIndex - 1,
+                        pairIndex,
                         pairName.trim(),
                         split[1].trim(),
                         split1[0].trim(),
@@ -161,7 +161,7 @@ public class HtmlScheduleParser implements ScheduleParser {
                 String[] split1 = split[2].split(",");
 
                 pairList.add(new Pair(
-                        pairIndex - 1,
+                        pairIndex,
                         pairName.trim(),
                         split[1].trim(),
                         split1[0].trim(),
