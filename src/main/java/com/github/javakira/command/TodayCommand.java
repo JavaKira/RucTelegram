@@ -59,7 +59,7 @@ public class TodayCommand implements Command {
                 Card card = optionalCard.get();
                 for (int i = 0; i < card.pairList().size(); i++) {
                     Pair pair = card.pairList().get(i);
-                    builder.append(i)
+                    builder.append(pair.index())
                             .append(" — ")
                             .append(pair.name())
                             .append("\n")
