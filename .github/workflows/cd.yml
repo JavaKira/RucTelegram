@@ -24,7 +24,6 @@ jobs:
         username: ${{ secrets.USERNAME }}
         password: ${{ secrets.PRIVATE_KEY }}
         port: 22
-        command_timeout: "10s"
         script: |
           pkill java
           cd /home/javakira/ruc/RucTelegram
@@ -33,4 +32,4 @@ jobs:
           chmod u+x gradlew
           ./gradlew build
           cd build/libs/
-          nohup java -jar RucTelegram2-1.0-SNAPSHOT.jar
+          nohup java -jar RucTelegram2-1.0-SNAPSHOT.jar > nohup.out 2> nohup.err < /dev/null &
