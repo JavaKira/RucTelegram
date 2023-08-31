@@ -48,17 +48,17 @@ public class WeekCommand implements Command {
 
                 for (int cardIndex = 0; cardIndex < cards.getList().size(); cardIndex++) {
                     Card card = cards.getList().get(cardIndex);
+                    builder.append(card.date().getDayOfMonth())
+                            .append(".")
+                            .append(card.date().getMonth().getValue())
+                            .append(".")
+                            .append(card.date().getYear())
+                            .append(" (")
+                            .append(card.date().getDayOfWeek())
+                            .append(")\n");
                     for (int i = 0; i < card.pairList().size(); i++) {
                         Pair pair = card.pairList().get(i);
-                        builder.append(card.date().getDayOfMonth())
-                                .append(".")
-                                .append(card.date().getMonth().getValue())
-                                .append(".")
-                                .append(card.date().getYear())
-                                .append(" (")
-                                .append(card.date().getDayOfWeek())
-                                .append(")\n");
-                        builder.append(i)
+                        builder.append(pair.index())
                                 .append(" — ")
                                 .append(pair.name())
                                 .append("\n")
