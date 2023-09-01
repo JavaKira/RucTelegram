@@ -11,6 +11,10 @@ import java.util.List;
 public class CallbackService {
     private final List<CallbackConsumer> consumers = new ArrayList<>();
 
+    public CallbackService() {
+        consumers.add(WeekCallbackConsumer.instance);
+    }
+
     public void onUpdateReceived(Bot bot, Update update) {
         consumers.forEach(consumer -> consumer.accept(bot, update));
     }

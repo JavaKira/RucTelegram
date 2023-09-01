@@ -1,5 +1,6 @@
 package com.github.javakira;
 
+import com.github.javakira.callback.CallbackService;
 import com.github.javakira.command.CommandService;
 import com.github.javakira.config.BotConfig;
 import com.github.javakira.context.ChatContextService;
@@ -17,18 +18,21 @@ public class Bot extends TelegramLongPollingBot {
     final BotConfig config;
 
     public final CommandService commandService;
+    public final CallbackService callbackService;
     public final ParserService parserService;
     public final ReplyExecutorService replyExecutorService;
     public final ChatContextService chatContextService;
 
     public Bot(
             BotConfig config,
+            @Autowired CallbackService callbackService,
             @Autowired CommandService commandService,
             @Autowired ParserService parserService,
             @Autowired ReplyExecutorService replyExecutorService,
             @Autowired ChatContextService chatContextService
     ) {
         this.config = config;
+        this.callbackService = callbackService;
         this.commandService = commandService;
         this.parserService = parserService;
         this.replyExecutorService = replyExecutorService;
@@ -39,6 +43,7 @@ public class Bot extends TelegramLongPollingBot {
     public void onUpdateReceived(Update update) {
         commandService.onUpdateReceived(this, update);
         replyExecutorService.onUpdateReceived(this, update);
+        callbackService.onUpdateReceived(this, update);
     }
 
     @Override
