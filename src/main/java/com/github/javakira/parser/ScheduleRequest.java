@@ -40,7 +40,7 @@ public class ScheduleRequest {
         }
 
         if (searchDate) {
-            result.put("search-date", "search-date");
+            //result.put("search-date", "search-date");
             result.put("scheduler-date", format(schedulerDate));
             result.put("date-search", format(dateSearch));
         }
