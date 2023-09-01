@@ -70,15 +70,16 @@ public class WeekCallbackConsumer extends CallbackConsumer {
                 } else {
                     editMessageText.setText("Расписания для " + (bot.chatContextService.isEmployee(chatId) ? bot.chatContextService.employee(chatId).title() : bot.chatContextService.group(chatId).title()) + " на неделю нет");
                 }
+
+                editMessageReplyMarkup.setReplyMarkup(new WeekReplyMarkup(localDate));
+
+                try {
+                    bot.execute(editMessageText);
+                    bot.execute(editMessageReplyMarkup);
+                } catch (TelegramApiException ignored) {
+
+                }
             });
-            editMessageReplyMarkup.setReplyMarkup(new WeekReplyMarkup(localDate));
-
-            try {
-                bot.execute(editMessageText);
-                bot.execute(editMessageReplyMarkup);
-            } catch (TelegramApiException e) {
-
-            }
         }
     }
 
