@@ -34,7 +34,7 @@ public class WeekCallbackConsumer extends CallbackConsumer {
             editMessageReplyMarkup.setMessageId(message.getMessageId());
             editMessageText.setMessageId(message.getMessageId());
             editMessageText.setChatId(chatId);
-            getCards(bot, chatId).thenAccept(cards -> {
+            getCards(bot, chatId, localDate).thenAccept(cards -> {
                 StringBuilder builder = new StringBuilder();
                 if (!cards.getList().isEmpty()) {
                     builder.append("#Расписание ")
@@ -83,9 +83,7 @@ public class WeekCallbackConsumer extends CallbackConsumer {
         }
     }
 
-    private CompletableFuture<Cards> getCards(Bot bot, long chatId) {
-        LocalDate today = LocalDate.now();
-
+    private CompletableFuture<Cards> getCards(Bot bot, long chatId, LocalDate today) {
         if (!bot.chatContextService.isEmployee(chatId)) {
             return bot.parserService.groupCards(
                     bot.chatContextService.branch(chatId).value(),

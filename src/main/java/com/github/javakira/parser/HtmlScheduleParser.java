@@ -90,6 +90,9 @@ public class HtmlScheduleParser implements ScheduleParser {
                 .branch(branch)
                 .kit(kit)
                 .group(group)
+                .searchDate(true)
+                .dateSearch(searchDate)
+                .schedulerDate(LocalDate.now())
                 .build());
         Elements cardElements = document.getElementsByClass("card");
         for (Element cardElement : cardElements) {
