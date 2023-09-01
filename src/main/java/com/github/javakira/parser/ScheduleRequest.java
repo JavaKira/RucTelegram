@@ -41,18 +41,10 @@ public class ScheduleRequest {
 
         if (searchDate) {
             result.put("search-date", "search-date");
-            result.put("scheduler-date", format(schedulerDate));
-            result.put("date-search", format(dateSearch));
+            result.put("scheduler-date", schedulerDate.toString());
+            result.put("date-search", dateSearch.toString());
         }
 
         return result;
-    }
-
-    private String format(LocalDate date) {
-        int month = date.plusMonths(1).getMonth().getValue();
-        return
-                (1900 + date.getYear()) + "-" +
-                        (month < 10 ? "0" + month : month) + "-" +
-                        (date.getDayOfMonth() < 10 ? "0" + date.getDayOfMonth() : date.getDayOfMonth());
     }
 }
