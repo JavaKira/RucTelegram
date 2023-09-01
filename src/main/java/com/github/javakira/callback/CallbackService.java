@@ -16,6 +16,7 @@ public class CallbackService {
     }
 
     public void onUpdateReceived(Bot bot, Update update) {
-        consumers.forEach(consumer -> consumer.accept(bot, update));
+        if (update.hasCallbackQuery())
+            consumers.forEach(consumer -> consumer.accept(bot, update));
     }
 }

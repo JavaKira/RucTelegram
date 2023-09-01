@@ -21,6 +21,9 @@ import java.util.Optional;
 @Slf4j
 public class ReplyExecutorService {
     public void onUpdateReceived(Bot bot, Update update) {
+        if (!update.hasMessage())
+            return;
+
         ReplyState replyState = bot.chatContextService.replyState(update.getMessage().getChatId());
         switch (replyState) {
             case def -> {}
