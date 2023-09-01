@@ -186,7 +186,9 @@ public class HtmlScheduleParser implements ScheduleParser {
         connection.data(request.data(false));
 
         try {
-            return connection.post();
+            Document document = connection.post();
+            System.out.println(document);
+            return document;
         } catch (IOException e) {
             throw new ServerNotRespondingException(e);
         }
