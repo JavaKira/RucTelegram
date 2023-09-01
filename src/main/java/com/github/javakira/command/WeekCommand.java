@@ -4,13 +4,12 @@ import com.github.javakira.Bot;
 import com.github.javakira.parser.Card;
 import com.github.javakira.parser.Cards;
 import com.github.javakira.parser.Pair;
+import com.github.javakira.replyMarkup.WeekReplyMarkup;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.time.LocalDate;
-import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 public class WeekCommand implements Command {
@@ -72,6 +71,7 @@ public class WeekCommand implements Command {
                 }
 
                 sendMessage.setText(builder.toString());
+                sendMessage.setReplyMarkup(new WeekReplyMarkup());
             } else {
                 sendMessage.setText("Расписания для " + (bot.chatContextService.isEmployee(chatId) ? bot.chatContextService.employee(chatId).title() : bot.chatContextService.group(chatId).title()) + " на неделю нет");
             }
