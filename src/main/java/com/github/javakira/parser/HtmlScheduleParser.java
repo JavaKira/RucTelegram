@@ -189,6 +189,7 @@ public class HtmlScheduleParser implements ScheduleParser {
             Document document = connection.post();
             System.out.println(document);
             System.out.println(request.data(false));
+            System.out.println(LocalDate.now());
             return document;
         } catch (IOException e) {
             throw new ServerNotRespondingException(e);
