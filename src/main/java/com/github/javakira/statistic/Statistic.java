@@ -10,6 +10,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Getter(AccessLevel.PROTECTED)
 @Setter(AccessLevel.PROTECTED)
@@ -25,7 +26,7 @@ public class Statistic {
     private Long id;
 
     private String data;
-    private LocalDate date;
+    private LocalDateTime date;
     private String type;
 
     //Chat data

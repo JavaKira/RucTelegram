@@ -2,7 +2,7 @@ package com.github.javakira.statistic;
 
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Service
 public class StatisticService {
@@ -21,7 +21,7 @@ public class StatisticService {
         save(Statistic.builder()
                 .data(command)
                 .type(Statistic.commandUsageType)
-                .date(LocalDate.now())
+                .date(LocalDateTime.now())
                 .build()
         );
     }
