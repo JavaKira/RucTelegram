@@ -26,7 +26,10 @@ public class CommandService {
             split[0] = split[0].replace("@RucSchedule_bot", "");
 
             Optional<Command> usedCommand = commands.stream().filter(command -> command.getUsage().equals(split[0])).findAny();
-            usedCommand.ifPresent(command -> command.execute(bot, update));
+            usedCommand.ifPresent(command -> {
+                command.execute(bot, update);
+                bot.statisticService.addCommandUsage(command.getUsage());
+            });
         }
     }
 }
