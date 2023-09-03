@@ -28,7 +28,7 @@ public class CommandService {
             Optional<Command> usedCommand = commands.stream().filter(command -> command.getUsage().equals(split[0])).findAny();
             usedCommand.ifPresent(command -> {
                 command.execute(bot, update);
-                bot.statisticService.addCommandUsage(command.getUsage());
+                bot.statisticService.addCommandUsage(command.getUsage(), bot.chatContextService.get(update.getMessage().getChatId()));
             });
         }
     }

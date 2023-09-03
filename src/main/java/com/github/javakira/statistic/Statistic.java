@@ -43,16 +43,16 @@ public class Statistic {
 
     public String username;
 
-//    public static class StatisticBuilder {
-//        public StatisticBuilder setContext(ChatContext context) {
-//            if (context != null) {
-//                this.groupTitle = context.getGroupTitle();
-//                this.branchTitle = context.getBranchTitle();
-//                this.kitTitle = context.getKitTitle();
-//                this.employeeTitle = context.getEmployeeTitle();
-//            }
-//
-//            return this;
-//        }
-//    }
+    public static class StatisticBuilder {
+        public StatisticBuilder setContext(ChatContext context) {
+            if (context != null) {
+                this.groupTitle = context.getGroupTitle();
+                this.branchTitle = context.getBranchTitle();
+                this.kitTitle = context.getKitTitle();
+                this.employeeTitle = context.getEmployeeTitle();
+            }
+
+            return this;
+        }
+    }
 }
