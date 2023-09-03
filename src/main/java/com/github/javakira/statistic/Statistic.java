@@ -8,6 +8,7 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
+import org.telegram.telegrambots.meta.api.objects.Chat;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -44,6 +45,13 @@ public class Statistic {
     public String username;
 
     public static class StatisticBuilder {
+        public StatisticBuilder setChat(Chat chat) {
+            return chatFirstName(chat.getFirstName())
+                    .chatLastName(chat.getLastName())
+                    .chatUsername(chat.getUserName())
+                    .chatTitle(chat.getTitle());
+        }
+
         public StatisticBuilder setContext(ChatContext context) {
             if (context != null) {
                 this.groupTitle = context.getGroupTitle();
