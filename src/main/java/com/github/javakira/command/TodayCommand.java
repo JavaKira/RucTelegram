@@ -5,6 +5,7 @@ import com.github.javakira.context.ChatContext;
 import com.github.javakira.parser.Card;
 import com.github.javakira.parser.Cards;
 import com.github.javakira.parser.Pair;
+import com.github.javakira.util.Formatter;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
@@ -32,6 +33,7 @@ public class TodayCommand implements Command {
         LocalDate today = LocalDate.now();
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(chatId);
+        sendMessage.setParseMode("HTML");
         if (!bot.chatContextService.isSetup(chatId)) {
             sendMessage.setText("Бот не настроен, используйте /setup");
             try {
@@ -45,15 +47,15 @@ public class TodayCommand implements Command {
             StringBuilder builder = new StringBuilder();
             builder.append("#Расписание ")
                     .append(bot.chatContextService.isEmployee(chatId) ? bot.chatContextService.employee(chatId).title() : bot.chatContextService.group(chatId).title())
-                    .append(" на ")
+                    .append(" на <b>")
                     .append(today.getDayOfMonth())
                     .append(".")
                     .append(today.getMonth().getValue())
                     .append(".")
                     .append(today.getYear())
                     .append(" (")
-                    .append(today.getDayOfWeek())
-                    .append(")\n");
+                    .append(Formatter.formatDayOfWeek(today.getDayOfWeek()))
+                    .append(")</b>\n");
             Optional<Card> optionalCard = cards.today();
             if (optionalCard.isPresent()) {
                 Card card = optionalCard.get();

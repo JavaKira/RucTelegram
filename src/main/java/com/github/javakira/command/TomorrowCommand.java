@@ -4,6 +4,7 @@ import com.github.javakira.Bot;
 import com.github.javakira.parser.Card;
 import com.github.javakira.parser.Cards;
 import com.github.javakira.parser.Pair;
+import com.github.javakira.util.Formatter;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
@@ -30,6 +31,7 @@ public class TomorrowCommand implements Command {
         LocalDate tomorrow = LocalDate.now().plusDays(1);
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(chatId);
+        sendMessage.setParseMode("HTML");
         if (!bot.chatContextService.isSetup(chatId)) {
             sendMessage.setText("Бот не настроен, используйте /setup");
             try {
@@ -43,24 +45,25 @@ public class TomorrowCommand implements Command {
             StringBuilder builder = new StringBuilder();
             builder.append("#Расписание ")
                     .append(bot.chatContextService.isEmployee(chatId) ? bot.chatContextService.employee(chatId).title() : bot.chatContextService.group(chatId).title())
-                    .append(" на ")
+                    .append(" на <b>")
                     .append(tomorrow.getDayOfMonth())
                     .append(".")
                     .append(tomorrow.getMonth().getValue())
                     .append(".")
                     .append(tomorrow.getYear())
                     .append(" (")
-                    .append(tomorrow.getDayOfWeek())
-                    .append(")\n");
+                    .append(Formatter.formatDayOfWeek(tomorrow.getDayOfWeek()))
+                    .append(")</b>\n");
             Optional<Card> optionalCard = cards.tomorrow();
             if (optionalCard.isPresent()) {
                 Card card = optionalCard.get();
                 for (int i = 0; i < card.pairList().size(); i++) {
                     Pair pair = card.pairList().get(i);
-                    builder.append(pair.index())
+                    builder.append("<b>")
+                            .append(pair.index())
                             .append(" — ")
                             .append(pair.name())
-                            .append("\n")
+                            .append("</b>\n")
                             .append(pair.by())
                             .append("\n")
                             .append(pair.place())
