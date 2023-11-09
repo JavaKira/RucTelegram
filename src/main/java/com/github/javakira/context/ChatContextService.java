@@ -4,20 +4,16 @@ import com.github.javakira.parser.Branch;
 import com.github.javakira.parser.Employee;
 import com.github.javakira.parser.Group;
 import com.github.javakira.parser.Kit;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class ChatContextService {
     private final ChatContextRepository repository;
-
-    @Autowired
-    public ChatContextService(ChatContextRepository repository) {
-        this.repository = repository;
-    }
 
     public List<ChatContext> all() {
         return repository.findAll();
