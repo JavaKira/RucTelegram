@@ -41,45 +41,9 @@ public class WeekCommand implements Command {
             }
         }
         getCards(bot, chatId).thenAccept(cards -> {
-            StringBuilder builder = new StringBuilder();
-            if (!cards.getList().isEmpty()) {
-                builder.append("ℹ️ Используй инлайн-кнопки внизу сообщения, что бы выбрать нужную неделю\n\n");
-                builder.append("#Расписание ")
-                        .append(bot.chatContextService.isEmployee(chatId) ? bot.chatContextService.employee(chatId).title() : bot.chatContextService.group(chatId).title())
-                        .append("\n");
-
-                for (int cardIndex = 0; cardIndex < cards.getList().size(); cardIndex++) {
-                    Card card = cards.getList().get(cardIndex);
-                    builder.append("<b>")
-                            .append(card.date().getDayOfMonth())
-                            .append(".")
-                            .append(card.date().getMonth().getValue())
-                            .append(".")
-                            .append(card.date().getYear())
-                            .append(" (")
-                            .append(Formatter.formatDayOfWeek(card.date().getDayOfWeek()))
-                            .append(")</b>\n");
-                    for (int i = 0; i < card.pairList().size(); i++) {
-                        Pair pair = card.pairList().get(i);
-                        builder.append("<b>")
-                                .append(pair.index())
-                                .append(" — ")
-                                .append(pair.name())
-                                .append("</b>\n")
-                                .append(pair.by())
-                                .append("\n")
-                                .append(pair.place())
-                                .append("\n")
-                                .append(pair.type())
-                                .append("\n\n");
-                    }
-                }
-
-                sendMessage.setText(builder.toString());
-                sendMessage.setReplyMarkup(new WeekReplyMarkup());
-            } else {
-                sendMessage.setText("Расписания для " + (bot.chatContextService.isEmployee(chatId) ? bot.chatContextService.employee(chatId).title() : bot.chatContextService.group(chatId).title()) + " на неделю нет");
-            }
+            String title = bot.chatContextService.isEmployee(chatId) ? bot.chatContextService.employee(chatId).title() : bot.chatContextService.group(chatId).title();
+            sendMessage.setText(new WeekTextBuilder(cards, title).text());
+            sendMessage.setReplyMarkup(new WeekReplyMarkup());
 
             try {
                 bot.execute(sendMessage);

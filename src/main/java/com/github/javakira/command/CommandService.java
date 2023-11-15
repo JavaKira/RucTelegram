@@ -10,6 +10,7 @@ import java.util.*;
 public class CommandService {
     private final List<Command> commands = new ArrayList<>();
 
+    //todo можно было бы даже заменить на IoC от спринга
     public CommandService() {
         commands.add(StartCommand.instance);
         commands.add(SetupCommand.instance);
