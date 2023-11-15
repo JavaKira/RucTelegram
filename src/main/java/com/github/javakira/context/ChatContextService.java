@@ -7,6 +7,7 @@ import com.github.javakira.parser.Kit;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -28,6 +29,7 @@ public class ChatContextService {
         if (optionalChatContext.isEmpty()) {
             ChatContext newContext = new ChatContext();
             newContext.setChatId(chatId);
+            newContext.setCreationDate(LocalDateTime.now());
             save(newContext);
             return newContext;
         }

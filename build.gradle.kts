@@ -25,7 +25,6 @@ dependencies {
     implementation("org.hibernate:hibernate-core:6.2.0.Final")
     implementation("org.hibernate.validator:hibernate-validator:8.0.0.Final")
     implementation("org.jsoup:jsoup:1.15.3")
-
     compileOnly("org.projectlombok:lombok")
     runtimeOnly("org.postgresql:postgresql")
     annotationProcessor("org.projectlombok:lombok")
