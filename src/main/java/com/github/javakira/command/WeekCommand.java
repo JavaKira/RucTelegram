@@ -43,6 +43,7 @@ public class WeekCommand implements Command {
         getCards(bot, chatId).thenAccept(cards -> {
             StringBuilder builder = new StringBuilder();
             if (!cards.getList().isEmpty()) {
+                builder.append("ℹ️ Используй инлайн-кнопки внизу сообщения, что бы выбрать нужную неделю\n\n");
                 builder.append("#Расписание ")
                         .append(bot.chatContextService.isEmployee(chatId) ? bot.chatContextService.employee(chatId).title() : bot.chatContextService.group(chatId).title())
                         .append("\n");
