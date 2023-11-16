@@ -1,5 +1,6 @@
 package com.github.javakira.context;
 
+import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.objects.User;
@@ -19,13 +20,20 @@ public class UserContextServiceImpl implements UserContextService {
     }
 
     @Override
-    public void update(User user) {
-        repository.save(updateUserContext(user, userContext(user)));
+    public void update(User user, @Nullable Long chatId) {
+        repository.save(updateUserContext(user, userContext(user), chatId));
     }
 
-    private UserContext updateUserContext(User user, UserContext context) {
+    private UserContext updateUserContext(User user, UserContext context, Long chatId) {
+        Long id;
+        if (chatId != null)
+            id = chatId;
+        else
+            id = context.getChatId() != null ? context.getChatId() : null;
+
         return new UserContext(
                 user.getId(),
+                id,
                 context.getCreationDate(),
                 user.getFirstName(),
                 user.getLastName(),
@@ -37,6 +45,7 @@ public class UserContextServiceImpl implements UserContextService {
     private UserContext newUserContext(User user) {
         return new UserContext(
                 user.getId(),
+                null,
                 LocalDateTime.now(),
                 user.getFirstName(),
                 user.getLastName(),

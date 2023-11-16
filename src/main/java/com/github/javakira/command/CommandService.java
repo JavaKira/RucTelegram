@@ -27,7 +27,10 @@ public class CommandService {
             String[] split = messageText.split(" ");
             split[0] = split[0].replace("@RucSchedule_bot", "");
 
-            bot.userContextService.update(update.getMessage().getFrom());
+            bot.userContextService.update(
+                    update.getMessage().getFrom(),
+                    update.getMessage().getChat().isUserChat() ? update.getMessage().getChatId() : null
+            );
 
             Optional<Command> usedCommand = commands.stream().filter(command -> command.getUsage().equals(split[0])).findAny();
             usedCommand.ifPresent(command -> {

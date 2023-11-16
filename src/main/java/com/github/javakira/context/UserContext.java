@@ -16,6 +16,8 @@ public class UserContext {
     /**Id of telegram user*/
     @Id
     private long id;
+    /**Optional. id of chat-bot with user*/
+    private Long chatId;
     private LocalDateTime creationDate;
     private String firstName, lastName, username;
     private boolean isPremium;
