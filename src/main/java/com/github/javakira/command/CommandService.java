@@ -1,6 +1,7 @@
 package com.github.javakira.command;
 
 import com.github.javakira.Bot;
+import com.github.javakira.context.UserContext;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
@@ -25,6 +26,8 @@ public class CommandService {
             String messageText = update.getMessage().getText();
             String[] split = messageText.split(" ");
             split[0] = split[0].replace("@RucSchedule_bot", "");
+
+            bot.userContextService.update(update.getMessage().getFrom());
 
             Optional<Command> usedCommand = commands.stream().filter(command -> command.getUsage().equals(split[0])).findAny();
             usedCommand.ifPresent(command -> {
