@@ -1,6 +1,6 @@
 package com.github.javakira.parser;
 
-public class ScheduleParserException extends Exception {
+public class ScheduleParserException extends RuntimeException {
     public ScheduleParserException() {
     }
 

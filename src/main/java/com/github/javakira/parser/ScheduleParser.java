@@ -10,17 +10,17 @@ public interface ScheduleParser {
     String link = "https://schedule.ruc.su/";
     String employeeLink = "https://schedule.ruc.su/employee/";
 
-    List<Branch> parseBranches() throws Exception;
+    List<Branch> parseBranches() throws ScheduleParserException;
 
-    List<Kit> parseKits(@NonNull String branch) throws Exception;
+    List<Kit> parseKits(@NonNull String branch) throws ScheduleParserException;
 
-    List<Group> parseGroups(@NonNull String branch, @NonNull String kit) throws Exception;
+    List<Group> parseGroups(@NonNull String branch, @NonNull String kit) throws ScheduleParserException;
 
-    List<Employee> parseEmployees(@NonNull String branch) throws Exception;
+    List<Employee> parseEmployees(@NonNull String branch) throws ScheduleParserException;
 
-    Cards parseGroupCards(@NonNull String branch, @NonNull String kit, @NonNull String group, @NonNull LocalDate searchDate) throws Exception;
+    Cards parseGroupCards(@NonNull String branch, @NonNull String kit, @NonNull String group, @NonNull LocalDate searchDate) throws ScheduleParserException;
 
-    Cards parseEmployeeCards(@NonNull String branch, @NonNull String employee, @NonNull LocalDate searchDate) throws Exception;
+    Cards parseEmployeeCards(@NonNull String branch, @NonNull String employee, @NonNull LocalDate searchDate) throws ScheduleParserException;
 
     Document document(ScheduleRequest request) throws ServerNotRespondingException;
 

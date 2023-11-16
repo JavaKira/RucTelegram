@@ -21,7 +21,7 @@ import java.util.regex.Pattern;
 
 public class HtmlScheduleParser implements ScheduleParser {
     @Override
-    public List<Branch> parseBranches() throws Exception {
+    public List<Branch> parseBranches() throws ScheduleParserException {
         Elements elements;
         Document document = document(ScheduleRequest.builder().build());
         Element employee = document.getElementsByAttribute("name").stream()
@@ -35,7 +35,7 @@ public class HtmlScheduleParser implements ScheduleParser {
     }
 
     @Override
-    public List<Kit> parseKits(@NonNull String branch) throws Exception {
+    public List<Kit> parseKits(@NonNull String branch) throws ScheduleParserException {
         Elements elements;
         Document document = document(ScheduleRequest.builder()
                 .branch(branch)
@@ -51,7 +51,7 @@ public class HtmlScheduleParser implements ScheduleParser {
     }
 
     @Override
-    public List<Group> parseGroups(@NonNull String branch, @NonNull String kit) throws Exception {
+    public List<Group> parseGroups(@NonNull String branch, @NonNull String kit) throws ScheduleParserException {
         Elements elements;
         Document document = document(ScheduleRequest.builder()
                 .branch(branch)
@@ -68,7 +68,7 @@ public class HtmlScheduleParser implements ScheduleParser {
     }
 
     @Override
-    public List<Employee> parseEmployees(@NonNull String branch) throws Exception {
+    public List<Employee> parseEmployees(@NonNull String branch) throws ScheduleParserException {
         Elements elements;
         Document document = employeeDocument(ScheduleRequest.builder()
                 .branch(branch)
@@ -84,7 +84,7 @@ public class HtmlScheduleParser implements ScheduleParser {
     }
 
     @Override
-    public Cards parseGroupCards(@NonNull String branch, @NonNull String kit, @NonNull String group, @NonNull LocalDate searchDate) throws Exception {
+    public Cards parseGroupCards(@NonNull String branch, @NonNull String kit, @NonNull String group, @NonNull LocalDate searchDate) throws ScheduleParserException {
         List<Card> cards = new ArrayList<>();
         Document document = document(ScheduleRequest.builder()
                 .branch(branch)
@@ -133,7 +133,7 @@ public class HtmlScheduleParser implements ScheduleParser {
     }
 
     @Override
-    public Cards parseEmployeeCards(@NonNull String branch, @NonNull String employee, @NonNull LocalDate searchDate) throws Exception {
+    public Cards parseEmployeeCards(@NonNull String branch, @NonNull String employee, @NonNull LocalDate searchDate) throws ScheduleParserException {
         List<Card> cardList = new ArrayList<>();
         Document document = employeeDocument(ScheduleRequest.builder()
                 .branch(branch)
