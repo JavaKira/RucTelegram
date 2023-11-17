@@ -25,7 +25,7 @@ public class SetupCommand implements Command {
     public void execute(Bot bot, Update update) {
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(update.getMessage().getChatId());
-        sendMessage.setText("Данный бот не гарантирует точного рассписания. Источник всех данных — schedule.ruc.su. По всем вопросам — @Javapedik");
+        sendMessage.setText("Данный бот не гарантирует точного рассписания. Источник всех данных — schedule.ruc.su. По всем вопросам — @Javakira");
         bot.parserService.branches().thenAccept(branches -> {
             sendMessage.setReplyMarkup(new SetupReplyMarkup());
             try {
