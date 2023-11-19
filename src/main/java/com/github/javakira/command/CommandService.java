@@ -2,6 +2,7 @@ package com.github.javakira.command;
 
 import com.github.javakira.Bot;
 import com.github.javakira.context.UserContext;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
@@ -11,14 +12,9 @@ import java.util.*;
 public class CommandService {
     private final List<Command> commands = new ArrayList<>();
 
-    //todo можно было бы даже заменить на IoC от спринга
-    public CommandService() {
-        commands.add(StartCommand.instance);
-        commands.add(SetupCommand.instance);
-        commands.add(TimetableCommand.instance);
-        commands.add(TodayCommand.instance);
-        commands.add(TomorrowCommand.instance);
-        commands.add(WeekCommand.instance);
+    @Autowired
+    public CommandService(List<Command> commands) {
+        this.commands.addAll(commands);
     }
 
     public void onUpdateReceived(Bot bot, Update update) {

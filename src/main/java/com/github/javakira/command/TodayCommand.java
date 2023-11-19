@@ -5,7 +5,10 @@ import com.github.javakira.context.ChatContext;
 import com.github.javakira.parser.Card;
 import com.github.javakira.parser.Cards;
 import com.github.javakira.parser.Pair;
+import com.github.javakira.parser.ScheduleExceptionHandler;
 import com.github.javakira.util.Formatter;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
@@ -15,12 +18,10 @@ import java.util.Date;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
+@Component
+@RequiredArgsConstructor
 public class TodayCommand implements Command {
-    public static TodayCommand instance = new TodayCommand();
-
-    private TodayCommand() {
-
-    }
+    private final ScheduleExceptionHandler exceptionHandler;
 
     @Override
     public String getUsage() {
@@ -43,7 +44,9 @@ public class TodayCommand implements Command {
                 throw new RuntimeException(e);
             }
         }
-        getCards(bot, chatId).thenAccept(cards -> {
+        getCards(bot, chatId).whenComplete((cards, ex) -> {
+            exceptionHandler.handle(bot, update.getMessage().getChatId(), ex);
+
             StringBuilder builder = new StringBuilder();
             builder.append("#Расписание ")
                     .append(bot.chatContextService.isEmployee(chatId) ? bot.chatContextService.employee(chatId).title() : bot.chatContextService.group(chatId).title())

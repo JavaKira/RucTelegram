@@ -2,6 +2,7 @@ package com.github.javakira.command;
 
 import com.github.javakira.Bot;
 import com.github.javakira.replyMarkup.DefaultReplyMarkup;
+import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
@@ -9,12 +10,8 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+@Component
 public class TimetableCommand implements Command {
-    public static TimetableCommand instance = new TimetableCommand();
-
-    private TimetableCommand() {
-
-    }
 
     @Override
     public String getUsage() {

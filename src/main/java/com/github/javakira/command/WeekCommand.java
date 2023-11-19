@@ -1,11 +1,11 @@
 package com.github.javakira.command;
 
 import com.github.javakira.Bot;
-import com.github.javakira.parser.Card;
 import com.github.javakira.parser.Cards;
-import com.github.javakira.parser.Pair;
+import com.github.javakira.parser.ScheduleExceptionHandler;
 import com.github.javakira.replyMarkup.WeekReplyMarkup;
-import com.github.javakira.util.Formatter;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
@@ -13,12 +13,10 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import java.time.LocalDate;
 import java.util.concurrent.CompletableFuture;
 
+@Component
+@RequiredArgsConstructor
 public class WeekCommand implements Command {
-    public static WeekCommand instance = new WeekCommand();
-
-    private WeekCommand() {
-
-    }
+    private final ScheduleExceptionHandler exceptionHandler;
 
     @Override
     public String getUsage() {
@@ -40,7 +38,9 @@ public class WeekCommand implements Command {
                 throw new RuntimeException(e);
             }
         }
-        getCards(bot, chatId).thenAccept(cards -> {
+        getCards(bot, chatId).whenComplete((cards, ex) -> {
+            exceptionHandler.handle(bot, update.getMessage().getChatId(), ex);
+
             String title = bot.chatContextService.isEmployee(chatId) ? bot.chatContextService.employee(chatId).title() : bot.chatContextService.group(chatId).title();
             sendMessage.setText(new WeekTextBuilder(cards, title).text());
             sendMessage.setReplyMarkup(new WeekReplyMarkup());

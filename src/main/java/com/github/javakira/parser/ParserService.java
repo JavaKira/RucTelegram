@@ -14,7 +14,7 @@ public class ParserService {
     private final ExecutorService executor
             = Executors.newFixedThreadPool(50);
 
-    private final ScheduleParser parser = new HtmlScheduleParser();
+    private final ScheduleParser parser = new HtmlScheduleParser(); //todo возможнен IoC от спринга
 
     public CompletableFuture<List<Branch>> branches() {
         return CompletableFuture.supplyAsync(parser::parseBranches, executor);
