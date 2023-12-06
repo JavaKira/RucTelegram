@@ -5,7 +5,6 @@ import com.github.javakira.context.ReplyState;
 import com.github.javakira.parser.ScheduleExceptionHandler;
 import com.github.javakira.replyMarkup.SetupReplyMarkup;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
@@ -25,7 +24,7 @@ public class SetupCommand implements Command {
     public void execute(Bot bot, Update update) {
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(update.getMessage().getChatId());
-        sendMessage.setText("Данный бот не гарантирует точного рассписания. Источник всех данных — schedule.ruc.su. По всем вопросам — @Javakira");
+        sendMessage.setText("Данный бот не гарантирует точного расписания. Источник всех данных — schedule.ruc.su. По всем вопросам — @Javakira");
         bot.parserService.branches().whenComplete((branches, ex) -> {
             exceptionHandler.handle(bot, update.getMessage().getChatId(), ex);
             sendMessage.setReplyMarkup(new SetupReplyMarkup());
