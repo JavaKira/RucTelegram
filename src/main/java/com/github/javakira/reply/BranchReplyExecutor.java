@@ -2,7 +2,7 @@ package com.github.javakira.reply;
 
 import com.github.javakira.Bot;
 import com.github.javakira.context.ReplyState;
-import com.github.javakira.parser.Branch;
+import com.github.javakira.api.Branch;
 import com.github.javakira.replyMarkup.EmployeeReplyMarkup;
 import com.github.javakira.replyMarkup.KitReplyMarkup;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;

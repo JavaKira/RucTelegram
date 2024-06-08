@@ -1,9 +1,9 @@
 package com.github.javakira.context;
 
-import com.github.javakira.parser.Branch;
-import com.github.javakira.parser.Employee;
-import com.github.javakira.parser.Group;
-import com.github.javakira.parser.Kit;
+import com.github.javakira.api.Branch;
+import com.github.javakira.api.Employee;
+import com.github.javakira.api.Group;
+import com.github.javakira.api.Kit;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -134,5 +134,15 @@ public class ChatContextService {
         ChatContext context = get(chatId);
         if (context.getBranchValue() == null) return false;
         return context.getEmployeeValue() != null;
+    }
+
+    public boolean isWeekScheduleShorted(long chatId) {
+        return get(chatId).isWeekScheduleShorted();
+    }
+
+    public void isWeekScheduleShorted(long chatId, boolean value) {
+        ChatContext context = get(chatId);
+        context.setWeekScheduleShorted(value);
+        save(context);
     }
 }

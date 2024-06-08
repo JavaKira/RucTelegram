@@ -1,5 +1,8 @@
 package com.github.javakira.context;
 
 public enum ReplyState {
-    def, setup, choose, branch, kit, group, employee
+    //common
+    def, setup, choose, branch, kit, group, employee,
+    //admin
+    distribution
 }

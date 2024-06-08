@@ -1,9 +1,7 @@
 package com.github.javakira.command;
 
 import com.github.javakira.Bot;
-import com.github.javakira.parser.ScheduleExceptionHandler;
 import com.github.javakira.replyMarkup.DefaultReplyMarkup;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;

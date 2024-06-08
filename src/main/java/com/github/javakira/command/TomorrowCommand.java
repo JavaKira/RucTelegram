@@ -1,10 +1,10 @@
 package com.github.javakira.command;
 
 import com.github.javakira.Bot;
-import com.github.javakira.parser.Card;
-import com.github.javakira.parser.Cards;
-import com.github.javakira.parser.Pair;
-import com.github.javakira.parser.ScheduleExceptionHandler;
+import com.github.javakira.api.Card;
+import com.github.javakira.api.Cards;
+import com.github.javakira.api.Pair;
+import com.github.javakira.api.ScheduleExceptionHandler;
 import com.github.javakira.util.Formatter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;

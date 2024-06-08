@@ -1,4 +1,4 @@
-package com.github.javakira.parser;
+package com.github.javakira.api;
 
 public class ServerNotRespondingException extends ScheduleParserException {
     public ServerNotRespondingException() {

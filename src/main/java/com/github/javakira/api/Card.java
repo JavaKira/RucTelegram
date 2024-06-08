@@ -1,4 +1,4 @@
-package com.github.javakira.parser;
+package com.github.javakira.api;
 
 import java.time.LocalDate;
 import java.util.List;

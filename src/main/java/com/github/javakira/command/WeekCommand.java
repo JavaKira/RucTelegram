@@ -1,8 +1,8 @@
 package com.github.javakira.command;
 
 import com.github.javakira.Bot;
-import com.github.javakira.parser.Cards;
-import com.github.javakira.parser.ScheduleExceptionHandler;
+import com.github.javakira.api.Cards;
+import com.github.javakira.api.ScheduleExceptionHandler;
 import com.github.javakira.replyMarkup.WeekReplyMarkup;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -42,8 +42,8 @@ public class WeekCommand implements Command {
             exceptionHandler.handle(bot, update.getMessage().getChatId(), ex);
 
             String title = bot.chatContextService.isEmployee(chatId) ? bot.chatContextService.employee(chatId).title() : bot.chatContextService.group(chatId).title();
-            sendMessage.setText(new WeekTextBuilder(cards, title).text());
-            sendMessage.setReplyMarkup(new WeekReplyMarkup());
+            sendMessage.setText(new WeekTextBuilder(cards, title, bot.chatContextService.isWeekScheduleShorted(chatId)).text());
+            sendMessage.setReplyMarkup(new WeekReplyMarkup(bot.chatContextService.isWeekScheduleShorted(chatId)));
 
             try {
                 bot.execute(sendMessage);

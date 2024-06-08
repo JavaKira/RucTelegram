@@ -6,6 +6,8 @@ import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.objects.User;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -22,6 +24,16 @@ public class UserContextServiceImpl implements UserContextService {
     @Override
     public void update(User user, @Nullable Long chatId) {
         repository.save(updateUserContext(user, userContext(user), chatId));
+    }
+
+    @Override
+    public List<Long> getAllChats() {
+        return repository
+                .findAll()
+                .stream()
+                .map(UserContext::getChatId)
+                .filter(Objects::nonNull)
+                .toList();
     }
 
     private UserContext updateUserContext(User user, UserContext context, Long chatId) {

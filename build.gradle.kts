@@ -20,6 +20,8 @@ repositories {
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("org.springframework.boot:spring-boot-starter-webflux:3.1.2")
+    implementation("com.fasterxml.jackson.core:jackson-core:2.16.1")
     implementation("org.telegram:telegrambots:6.5.0")
     implementation("org.postgresql:postgresql:42.6.0")
     implementation("org.hibernate:hibernate-core:6.2.0.Final")

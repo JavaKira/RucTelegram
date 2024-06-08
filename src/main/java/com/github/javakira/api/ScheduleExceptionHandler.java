@@ -1,4 +1,4 @@
-package com.github.javakira.parser;
+package com.github.javakira.api;
 
 import com.github.javakira.Bot;
 import lombok.NonNull;

@@ -1,11 +1,11 @@
 package com.github.javakira;
 
+import com.github.javakira.api.ScheduleApiService;
 import com.github.javakira.callback.CallbackService;
 import com.github.javakira.command.CommandService;
 import com.github.javakira.config.BotConfig;
 import com.github.javakira.context.ChatContextService;
 import com.github.javakira.context.UserContextService;
-import com.github.javakira.parser.ParserService;
 import com.github.javakira.reply.ReplyExecutorService;
 import com.github.javakira.statistic.StatisticService;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +22,7 @@ public class Bot extends TelegramLongPollingBot {
 
     public final CommandService commandService;
     public final CallbackService callbackService;
-    public final ParserService parserService;
+    public final ScheduleApiService parserService;
     public final ReplyExecutorService replyExecutorService;
     public final ChatContextService chatContextService;
     public final UserContextService userContextService;

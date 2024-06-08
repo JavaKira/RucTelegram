@@ -2,7 +2,7 @@ package com.github.javakira.command;
 
 import com.github.javakira.Bot;
 import com.github.javakira.context.ReplyState;
-import com.github.javakira.parser.ScheduleExceptionHandler;
+import com.github.javakira.api.ScheduleExceptionHandler;
 import com.github.javakira.replyMarkup.SetupReplyMarkup;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;

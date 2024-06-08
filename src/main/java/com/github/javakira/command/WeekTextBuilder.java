@@ -1,8 +1,8 @@
 package com.github.javakira.command;
 
-import com.github.javakira.parser.Card;
-import com.github.javakira.parser.Cards;
-import com.github.javakira.parser.Pair;
+import com.github.javakira.api.Card;
+import com.github.javakira.api.Cards;
+import com.github.javakira.api.Pair;
 import com.github.javakira.util.Formatter;
 import lombok.RequiredArgsConstructor;
 
@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 public class WeekTextBuilder {
     private final Cards cards;
     private final String title;
+    private final boolean isWeekScheduleShorted;
 
     public String text() {
         StringBuilder builder = new StringBuilder();
@@ -32,18 +33,29 @@ public class WeekTextBuilder {
                         .append(")</b>\n");
                 for (int i = 0; i < card.pairList().size(); i++) {
                     Pair pair = card.pairList().get(i);
-                    builder.append("<b>")
-                            .append(pair.index())
-                            .append(" — ")
-                            .append(pair.name())
-                            .append("</b>\n")
-                            .append(pair.by())
-                            .append("\n")
-                            .append(pair.place())
-                            .append("\n")
-                            .append(pair.type())
-                            .append("\n\n");
+                    if (isWeekScheduleShorted) {
+                        builder
+                                .append(pair.index())
+                                .append(" — ")
+                                .append(pair.name())
+                                .append("\n");
+                    } else {
+                        builder
+                                .append("<b>")
+                                .append(pair.index())
+                                .append(" — ")
+                                .append(pair.name())
+                                .append("</b>\n")
+                                .append(pair.by())
+                                .append("\n")
+                                .append(pair.place())
+                                .append("\n")
+                                .append(pair.type())
+                                .append("\n\n");
+                    }
                 }
+
+                builder.append("\n");
             }
         } else {
             builder.append("Расписания для ").append(title).append(" на неделю нет");

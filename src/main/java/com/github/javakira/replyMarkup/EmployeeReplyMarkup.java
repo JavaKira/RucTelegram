@@ -1,7 +1,6 @@
 package com.github.javakira.replyMarkup;
 
-import com.github.javakira.parser.Branch;
-import com.github.javakira.parser.Employee;
+import com.github.javakira.api.Employee;
 import lombok.NonNull;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardButton;

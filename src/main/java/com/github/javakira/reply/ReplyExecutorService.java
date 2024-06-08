@@ -2,13 +2,14 @@ package com.github.javakira.reply;
 
 import com.github.javakira.Bot;
 import com.github.javakira.context.ReplyState;
-import com.github.javakira.parser.Branch;
-import com.github.javakira.parser.Employee;
-import com.github.javakira.parser.Group;
-import com.github.javakira.parser.Kit;
+import com.github.javakira.api.Branch;
+import com.github.javakira.api.Employee;
+import com.github.javakira.api.Group;
+import com.github.javakira.api.Kit;
 import com.github.javakira.replyMarkup.BranchReplyMarkup;
 import com.github.javakira.replyMarkup.EmployeeReplyMarkup;
 import com.github.javakira.replyMarkup.GroupReplyMarkup;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -19,7 +20,10 @@ import java.util.Optional;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class ReplyExecutorService {
+    private final DistributionReplyExecutor distributionReplyExecutor;
+
     public void onUpdateReceived(Bot bot, Update update) {
         if (!update.hasMessage())
             return;
@@ -33,7 +37,12 @@ public class ReplyExecutorService {
             case kit -> kit(bot, update);
             case group -> group(bot, update);
             case employee -> employee(bot, update);
+            case distribution -> distribution(bot, update);
         }
+    }
+
+    public void distribution(Bot bot, Update update) {
+        distributionReplyExecutor.execute(bot, update);
     }
 
     public void setup(Bot bot, Update update) {

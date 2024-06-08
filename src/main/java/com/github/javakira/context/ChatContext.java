@@ -19,6 +19,7 @@ public class ChatContext {
     private ReplyState replyState = ReplyState.def; //todo добавить @Enumurated, но это потребует рефакторинг базы данных
     private int lastReplyPage;
     private boolean isEmployee;
+    private boolean isWeekScheduleShorted;
     private String branchValue, employeeValue,  kitValue, groupValue;
     private String branchTitle, employeeTitle, kitTitle, groupTitle;
 }
